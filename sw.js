@@ -1,6 +1,6 @@
 // 現場黒板 オフライン用
-const CACHE = 'genba-kokuban-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
+const CACHE = 'genba-kokuban-v1.1';
+const ASSETS = ['./', './index.html', './piexif.js', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -13,10 +13,21 @@ self.addEventListener('activate', e => {
   );
 });
 
-// まず手元のコピーを返し、裏で最新版を取りに行く
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  // 画面本体は電波があれば最新版、なければ手元のコピー
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put('./index.html', copy));
+        return res;
+      }).catch(() => caches.match('./index.html', { ignoreSearch: true }))
+    );
+    return;
+  }
+  // それ以外は手元のコピーを返しつつ、裏で更新
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const hit = await cache.match(req, { ignoreSearch: true });
@@ -24,7 +35,7 @@ self.addEventListener('fetch', e => {
         if (res && res.ok) cache.put(req, res.clone());
         return res;
       }).catch(() => null);
-      return hit || (await net) || (req.mode === 'navigate' ? cache.match('./index.html') : Response.error());
+      return hit || (await net) || Response.error();
     })
   );
 });
