@@ -1,5 +1,5 @@
 // 現場黒板 オフライン用
-const CACHE = 'genba-kokuban-v1.1';
+const CACHE = 'genba-kokuban-v1.2';
 const ASSETS = ['./', './index.html', './piexif.js', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -27,11 +27,12 @@ input,select,textarea{-webkit-user-select:text;user-select:text}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:disabled{opacity:.35;cursor:default}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+a{color:var(--chalk)}
 svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 #app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;grid-template-areas:"top" "stage" "ctrl";
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.top{grid-area:top;display:flex;align-items:center;gap:4px;padding:8px 10px;min-height:56px}
+.top{grid-area:top;display:flex;align-items:center;gap:2px;padding:8px 8px;min-height:56px}
 .stage{grid-area:stage;position:relative;min-height:0;min-width:0;display:grid;place-items:center;overflow:hidden}
 .ctrl{grid-area:ctrl;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 22px 18px}
 
@@ -41,9 +42,11 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .ib{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:20px;color:var(--fg);position:relative}
 .ib:active{background:var(--panel2)}
 .ib.on{color:var(--ink);background:var(--chalk)}
-.geo{color:var(--mute)}
-.geo.ok{color:var(--ok)}
-.geo.ng{color:var(--danger)}
+.ib.dim{color:var(--mute)}
+.ib.ok{color:var(--ok)}
+.ib.warn{color:var(--chalk)}
+.ib.ng{color:var(--danger)}
+.ib .cnt{position:absolute;top:2px;right:0;min-width:18px;height:16px;padding:0 4px;border-radius:8px;background:var(--chalk);color:var(--ink);font-size:11px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
 .modeBar{flex:1;min-width:0;font-weight:600;padding-left:6px}
 .modeBar small{display:block;color:var(--mute);font-weight:400;font-size:12px}
 
@@ -68,11 +71,12 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .shutter{width:80px;height:80px;border-radius:50%;border:4px solid var(--fg);display:grid;place-items:center}
 .shutter i{display:block;width:62px;height:62px;border-radius:50%;background:var(--fg);transition:transform .08s}
 .shutter:active i{transform:scale(.88)}
+.shutter.busy i{transform:scale(.7);opacity:.6}
 .shutter.photo i{background:var(--chalk);display:grid;place-items:center;color:var(--ink);font-style:normal;font-weight:700;font-size:15px}
 .editBtn{justify-self:end;display:grid;justify-items:center;gap:2px;font-size:12px;color:var(--fg);padding:4px 6px}
 
 @media (orientation:landscape) and (max-height:600px){
-  #app{grid-template-columns:1fr 132px;grid-template-rows:auto 1fr;grid-template-areas:"stage top" "stage ctrl"}
+  #app{grid-template-columns:1fr 140px;grid-template-rows:auto 1fr;grid-template-areas:"stage top" "stage ctrl"}
   .top{flex-wrap:wrap;justify-content:center;padding:8px 6px}
   .boardName{flex:1 1 100%;height:36px}
   .modeBar{flex:1 1 100%;text-align:center;padding:0}
@@ -94,23 +98,27 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 .tabs{position:sticky;top:50px;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;margin-bottom:6px;border-radius:12px;background:var(--ink)}
 .tabs button{height:36px;border-radius:9px;color:var(--mute);font-weight:600}
 .tabs button.on{background:var(--panel2);color:var(--fg)}
-.sec{margin:18px 0 8px;font-size:12px;letter-spacing:.08em;color:var(--mute)}
+.sec{margin:20px 0 8px;font-size:12px;letter-spacing:.08em;color:var(--mute)}
 .hrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pill{height:36px;padding:0 14px;border-radius:18px;background:var(--panel2);border:1px solid var(--line);font-size:14px}
+.pill{height:36px;padding:0 14px;border-radius:18px;background:var(--panel2);border:1px solid var(--line);font-size:14px;flex:none}
 .pill.on{background:var(--fg);color:var(--ink);border-color:var(--fg);font-weight:700}
 .pill.danger{color:var(--danger)}
 .pill.accent{color:var(--chalk);border-color:var(--chalk)}
 input[type=text],select,textarea{width:100%;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--fg);font:inherit;font-size:16px}
 textarea{padding:10px 12px;min-height:76px;resize:vertical;line-height:1.5}
 select{appearance:auto;height:42px}
-.field{display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:var(--panel2)}
-.field > label,.field > .cap{font-size:13px;color:var(--mute);font-weight:600}
+.field{display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:var(--panel2);min-width:0}
+.field > label,.field > .cap{font-size:13px;color:var(--mute);font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.role{font-size:11px;font-weight:700;padding:1px 7px;border-radius:9px;background:var(--chalk);color:var(--ink)}
 .fields{display:grid;gap:8px}
 .rowGroup{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .auto{display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:0 12px;border-radius:10px;border:1px dashed var(--line)}
 .auto small{color:var(--chalk)}
-.skBtn{display:flex;align-items:center;gap:10px;min-height:42px}
+.skBtn{display:flex;align-items:center;gap:10px;min-height:42px;height:auto;padding:6px 12px}
 .skBtn canvas{width:84px;height:auto;border-radius:6px;border:1px solid var(--line)}
+.pathBox{padding:10px 12px;border-radius:12px;border:1px solid var(--line);margin-bottom:10px;font-size:13px;line-height:1.6;word-break:break-all}
+.pathBox b{color:var(--chalk);font-weight:600}
+.pathBox small{display:block;color:var(--mute)}
 input[type=range]{width:100%;accent-color:var(--chalk)}
 .rangeRow{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;font-variant-numeric:tabular-nums}
 .lpWrap{position:sticky;top:96px;z-index:2;padding:6px 0 8px;background:var(--panel)}
@@ -119,12 +127,12 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 .insp h3{margin:0;font-size:14px;display:flex;justify-content:space-between;align-items:center}
 .insp h3 small{font-weight:400;color:var(--mute);font-size:12px}
 .seg{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
-.seg button{flex:1;height:38px;font-size:14px;color:var(--mute);border-left:1px solid var(--line)}
+.seg button{flex:1;height:38px;font-size:14px;color:var(--mute);border-left:1px solid var(--line);padding:0 6px}
 .seg button:first-child{border-left:0}
 .seg button.on{background:var(--fg);color:var(--ink);font-weight:700}
-.kv{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center}
+.kv{display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:center}
 .kv > span{font-size:13px;color:var(--mute)}
-.stepper{display:flex;align-items:center;gap:8px}
+.stepper{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .stepper button{width:40px;height:36px;border-radius:10px;border:1px solid var(--line);font-size:18px}
 .stepper b{min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
 .btns{display:flex;flex-wrap:wrap;gap:6px}
@@ -134,12 +142,16 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 .tpl canvas{width:100%;height:auto;border-radius:4px}
 .setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .setRow > div{min-width:0}
-.setRow small{display:block;color:var(--mute);font-size:12px;margin-top:2px;line-height:1.5}
-.setRow select{width:auto;min-width:150px}
+.setRow small{display:block;color:var(--mute);font-size:12px;margin-top:2px;line-height:1.5;word-break:break-all}
+.setRow select{width:auto;min-width:150px;max-width:55%}
 .sw{position:relative;width:50px;height:30px;flex:none;border-radius:15px;background:var(--line)}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--fg);transition:left .15s}
 .sw.on{background:var(--chalk)}.sw.on::after{left:23px;background:var(--ink)}
 .note{color:var(--mute);font-size:13px;line-height:1.7;margin:6px 0}
+.cloudBox{display:grid;gap:10px;margin-top:10px}
+.status{display:flex;align-items:center;gap:8px;font-size:14px}
+.status::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mute);flex:none}
+.status.ok::before{background:var(--ok)}.status.ng::before{background:var(--danger)}.status.warn::before{background:var(--chalk)}
 
 /* 写真一覧 */
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}
@@ -149,20 +161,22 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 .gi.sel .chk{background:var(--chalk);border-color:var(--chalk)}
 .gi.sel .chk::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
 .gi.sel img{opacity:.75}
-.galBar{position:sticky;bottom:calc(-24px - env(safe-area-inset-bottom));margin:12px calc(-1 * max(16px,env(safe-area-inset-left))) calc(-24px - env(safe-area-inset-bottom));padding:10px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.galBar .cnt{flex:1;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.gi .st{position:absolute;left:6px;bottom:6px;height:18px;padding:0 6px;border-radius:9px;font-size:11px;font-weight:700;display:grid;place-items:center;background:rgba(0,0,0,.6);color:var(--fg)}
+.gi .st.done{color:var(--ok)}.gi .st.pending{color:var(--chalk)}.gi .st.error{color:var(--danger)}
+.galBar{position:sticky;bottom:calc(-24px - env(safe-area-inset-bottom));margin:12px calc(-1 * max(16px,env(safe-area-inset-left))) calc(-24px - env(safe-area-inset-bottom));padding:10px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.galBar .cnt{flex:1 1 100%;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
 .empty{padding:40px 0;text-align:center;color:var(--mute);line-height:1.8}
 
 .full{position:fixed;inset:0;z-index:30;background:#000;display:grid;grid-template-rows:auto 1fr auto;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .full .vh{display:flex;align-items:center;gap:8px;padding:8px 12px}
-.full .vh div{flex:1;min-width:0;font-size:13px;color:var(--mute);line-height:1.5}
+.full .vh div{flex:1;min-width:0;font-size:13px;color:var(--mute);line-height:1.5;word-break:break-all}
 .full .vimg{min-height:0;display:grid;place-items:center;padding:4px;overflow:hidden}
 .full .vimg img{max-width:100%;max-height:100%;object-fit:contain}
 .full .vb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px 16px 16px}
 #skCv{touch-action:none;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
 
-#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;max-width:calc(100% - 32px);padding:10px 16px;border-radius:20px;background:rgba(24,32,27,.96);border:1px solid var(--line);font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;width:max-content;max-width:calc(100% - 32px);padding:10px 16px;border-radius:20px;background:rgba(24,32,27,.96);border:1px solid var(--line);font-size:14px;line-height:1.5;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;word-break:break-all}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -171,8 +185,9 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 <div id="app">
   <div class="top" id="topCam">
     <button class="boardName" id="boardNameBtn" aria-label="黒板を編集"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M3 9h18M3 13.5h18M8.5 4v14"/></svg><span id="boardNameTx">黒板</span><small>▼</small></button>
-    <button class="ib geo" id="geoBtn" aria-label="位置情報" title="位置情報" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></button>
-    <button class="ib" id="importBtn" aria-label="保存済みの写真に黒板を入れる" title="写真から"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg></button>
+    <button class="ib dim" id="cloudBtn" aria-label="クラウド" hidden><svg class="i" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.1 9.1 4.5 4.5 0 0 0 7 18z"/><path d="M12 15V10M9.5 12.5L12 10l2.5 2.5"/></svg><span class="cnt" hidden></span></button>
+    <button class="ib dim" id="geoBtn" aria-label="位置情報" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></button>
+    <button class="ib" id="importBtn" aria-label="保存済みの写真に黒板を入れる"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg></button>
     <button class="ib" id="torchBtn" aria-label="ライト" hidden><svg class="i" viewBox="0 0 24 24"><path d="M8 3h8v4l-2 3v11h-4V10L8 7z"/><path d="M12 13v2"/></svg></button>
     <button class="ib" id="flipBtn" aria-label="カメラ切り替え"><svg class="i" viewBox="0 0 24 24"><path d="M4 10a8 8 0 0 1 14.5-4.5L20 7M20 14a8 8 0 0 1-14.5 4.5L4 17"/><path d="M20 3v4h-4M4 21v-4h4"/></svg></button>
     <button class="ib" id="setBtn" aria-label="設定"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M19 6h1M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="16" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
@@ -215,8 +230,9 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
   </div>
 
   <div id="tab-content">
+    <div class="pathBox" id="pathBox"></div>
     <div class="fields" id="fieldsEl"></div>
-    <p class="note">マスの数や並びは「レイアウト」で変えられます。</p>
+    <p class="note">マスの数や並び、フォルダ分けに使うマスは「レイアウト」で変えられます。</p>
   </div>
 
   <div id="tab-layout" hidden>
@@ -245,22 +261,32 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 </section>
 
 <!-- 設定 -->
-<section class="sheet" id="settings" hidden aria-label="設定">
+<section class="sheet tall" id="settings" hidden aria-label="設定">
   <div class="sheetHead"><h2>設定</h2><button class="done" data-close>閉じる</button></div>
-  <div class="setRow"><div>撮るたびにスマホへ保存<small>Androidは「ダウンロード」フォルダに保存され、フォトアプリからも見られます</small></div><button class="sw" id="autoSw" role="switch" aria-label="撮るたびに保存"></button></div>
-  <div class="setRow"><div>位置情報を写真に記録<small>撮影日時と一緒に、写真の撮影データ（Exif）へ書き込みます</small></div><button class="sw" id="gpsSw" role="switch" aria-label="位置情報を記録"></button></div>
+
+  <div class="sec">スマホへの保存</div>
+  <div class="setRow"><div>保存のしかた<small id="localHint"></small></div>
+    <select id="localSel"><option value="folder">フォルダに整理</option><option value="download">ダウンロードに保存</option><option value="off">保存しない</option></select></div>
+  <div class="setRow" id="rootRow"><div>親フォルダ<small id="rootTx">まだ選んでいません</small></div><button class="pill accent" id="pickRoot">選ぶ</button></div>
+
+  <div class="sec">クラウドにバックアップ</div>
+  <div class="seg" id="cloudSeg"><button data-v="off">使わない</button><button data-v="gdrive">Googleドライブ</button><button data-v="onedrive">OneDrive</button></div>
+  <div class="cloudBox" id="cloudBox"></div>
+
+  <div class="sec">撮影</div>
+  <div class="setRow"><div>カメラで静止画を撮る<small>カメラの撮影データ（機種・露出・ISOなど）が付き、画質も上がります。シャッターが遅いと感じたらオフにします</small></div><button class="sw" id="stillSw" role="switch" aria-label="静止画で撮る"></button></div>
+  <div class="setRow"><div>位置情報を写真に記録<small>撮影データ（Exif）に緯度・経度を書き込みます</small></div><button class="sw" id="gpsSw" role="switch" aria-label="位置情報を記録"></button></div>
   <div class="setRow"><div>保存する写真の大きさ<small>長辺のピクセル数。工事写真は100万〜300万画素程度が目安です</small></div>
     <select id="sizeSel"><option value="1280">1280（約120万画素）</option><option value="1600">1600（約190万画素）</option><option value="2048">2048（約310万画素）</option><option value="0">カメラのまま</option></select></div>
   <div class="setRow"><div>撮影日の書き方</div>
     <select id="dateSel"><option value="ymd">2026年10月20日</option><option value="dot">2026.10.20</option><option value="wareki">令和8年10月20日</option></select></div>
   <div class="setRow"><div>グリッド線を表示</div><button class="sw" id="gridSw" role="switch" aria-label="グリッド線"></button></div>
-  <div class="setRow"><div>標準カメラで撮って黒板を入れる<small>高画質で撮りたい時や、このアプリのカメラが使えない時に</small></div><button class="pill" id="nativeBtn">起動</button></div>
+  <div class="setRow"><div>標準カメラで撮って黒板を入れる<small>このアプリのカメラが使えない時に</small></div><button class="pill" id="nativeBtn">起動</button></div>
   <div class="setRow" id="installRow" hidden><div>ホーム画面に追加</div><button class="pill on" id="installBtn">追加する</button></div>
-  <div class="sec">撮影データ（Exif）について</div>
-  <p class="note">写真には撮影日時・位置情報・機種名・黒板の内容（コメント欄）が書き込まれます。保存済みの写真に黒板を入れた場合は、元の写真の撮影データ（日時・位置・カメラの設定など）を引き継ぎます。ただしAndroidの写真選択画面は、元の写真の位置情報を外して渡すことがあります。</p>
-  <div class="sec">保存について</div>
+
+  <div class="sec">このアプリについて</div>
   <p class="note" id="storeInfo"></p>
-  <p class="note">写真はこのスマホの中だけに保存され、外部へは送信されません。<br>このアプリには改ざん検知機能がありません。電子小黒板の使用に改ざん検知（信憑性確認）が求められる工事では、対応ソフトを使ってください。</p>
+  <p class="note">写真には撮影日時・位置情報・機種名・カメラの設定・黒板の内容（コメント欄）が書き込まれます。<br>このアプリには改ざん検知機能がありません。電子小黒板の使用に改ざん検知（信憑性確認）が求められる工事では、対応ソフトを使ってください。</p>
   <p class="note">現場黒板 v<span id="verTx"></span></p>
 </section>
 
@@ -272,6 +298,7 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
     <span class="cnt" id="selCnt">0枚選択</span>
     <button class="pill danger" id="selDel" disabled>削除</button>
     <button class="pill" id="selShare" disabled>共有</button>
+    <button class="pill" id="selCloud" disabled hidden>クラウドへ送る</button>
     <button class="pill on" id="selSave" disabled>スマホに保存</button>
   </div>
 </section>
@@ -279,7 +306,7 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 <div class="full" id="viewer" hidden>
   <div class="vh"><div id="vInfo"></div><button class="pill" id="vClose">閉じる</button></div>
   <div class="vimg"><img id="vImg" alt="撮影した写真"></div>
-  <div class="vb"><button class="pill danger" id="vDel">削除</button><button class="pill" id="vShare">共有</button><button class="pill on" id="vSave">スマホに保存</button></div>
+  <div class="vb"><button class="pill danger" id="vDel">削除</button><button class="pill" id="vShare">共有</button><button class="pill" id="vCloud" hidden>クラウドへ送る</button><button class="pill on" id="vSave">スマホに保存</button></div>
 </div>
 
 <!-- 略図 -->
@@ -298,9 +325,10 @@ input[type=range]{width:100%;accent-color:var(--chalk)}
 <script>
 (()=>{
 'use strict';
-const VER='1.1';
+const VER='1.2';
 const $=id=>document.getElementById(id);
 const LS='genba-kokuban-v1';
+const SETUP_URL='https://github.com/karura0115-star/genba-kokuban/blob/main/SETUP.md';
 const FONT='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",Meiryo,sans-serif';
 const STYLES={
   green:{bg:'#24563c',frame:'#8b6a45',line:'#eeebdf',text:'#f8f6ec'},
@@ -310,56 +338,90 @@ const STYLES={
 const U=1000,PAD=14,UNIT=112,FRAME=20,SEL='#f0d35c';
 const MAX_ROWS=12,MAX_CELLS=4;
 const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const fsOK='showDirectoryPicker' in window;
 const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
 const p2=n=>String(n).padStart(2,'0');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clone=o=>JSON.parse(JSON.stringify(o));
-const defPos=()=>({p:{x:.03,y:.6,w:.62},l:{x:.03,y:.55,w:.4}});
+const defPos=()=>({p:{x:.03,y:.56,w:.62},l:{x:.03,y:.5,w:.4}});
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ---------- 整理に使うマス（役割） ---------- */
+const ROLES=[['koji','工事名','親フォルダ'],['kosyu','工種','フォルダ・ファイル名'],['sokuten','測点','フォルダ'],['koumoku','撮影項目','フォルダ・ファイル名']];
+const ROLE_NAME=Object.fromEntries(ROLES.map(r=>[r[0],r[1]]));
+const ROLE_RX={koji:/^工事名/,kosyu:/^工種/,sokuten:/^測点/,koumoku:/^撮影(項目|内容|箇所)/};
 
 /* ---------- ひな形 ---------- */
 const C=(label,value='',o={})=>Object.assign({id:uid(),type:'item',label,value,w:1,align:'left'},o);
 const R=(cells,h=1)=>({h,cells});
 const TEMPLATES={
-  std:{name:'標準（6行）',rows:()=>[R([C('工事名')]),R([C('工種')]),R([C('測点')]),R([C('撮影日','',{auto:'date'})]),R([C('施工者')]),R([C('備考')])]},
-  two:{name:'2列タイプ',rows:()=>[R([C('工事名')]),R([C('工種'),C('種別')]),R([C('細別'),C('測点')]),R([C('撮影日','',{auto:'date'}),C('施工者')]),R([C('備考')],1.5)]},
-  sketch:{name:'略図つき',rows:()=>[R([C('工事名')]),R([C('工種'),C('測点')]),R([C('撮影日','',{auto:'date'}),C('施工者')]),R([C('略図','',{type:'sketch',w:3,sketch:null}),C('','寸法・数量など',{type:'text',w:2})],3)]},
+  std:{name:'標準（7行）',rows:()=>[R([C('工事名')]),R([C('工種')]),R([C('測点')]),R([C('撮影項目')]),R([C('撮影日','',{auto:'date'})]),R([C('施工者')]),R([C('備考')])]},
+  two:{name:'2列タイプ',rows:()=>[R([C('工事名')]),R([C('工種'),C('種別')]),R([C('細別'),C('測点')]),R([C('撮影項目')]),R([C('撮影日','',{auto:'date'}),C('施工者')]),R([C('備考')],1.5)]},
+  sketch:{name:'略図つき',rows:()=>[R([C('工事名')]),R([C('工種'),C('測点')]),R([C('撮影項目'),C('撮影日','',{auto:'date'})]),R([C('施工者')]),R([C('略図','',{type:'sketch',w:3,sketch:null}),C('','寸法・数量など',{type:'text',w:2})],3)]},
   blank:{name:'白紙（1マス）',rows:()=>[R([C('項目')])]}
 };
 function makeBoard(key,name){const t=TEMPLATES[key]||TEMPLATES.std;return {id:uid(),name:name||t.name,style:'green',opacity:1,labW:.25,pos:defPos(),rows:t.rows()}}
 function eachCell(b,fn){b.rows.forEach((r,ri)=>r.cells.forEach((c,ci)=>fn(c,r,ri,ci)))}
 function defaultBoard(){
   const b=makeBoard('std','標準黒板');
-  const v={'工事名':'〇〇団地樹木整備工事','工種':'植栽工','測点':'No.12','施工者':'株式会社東山園','備考':'高木植栽 完了'};
+  const v={'工事名':'〇〇団地樹木整備工事','工種':'植栽工','測点':'No.12','撮影項目':'高木植栽状況','施工者':'株式会社東山園'};
   eachCell(b,c=>{if(v[c.label])c.value=v[c.label]});return b;
 }
-function migrateBoard(b){
+function roleCell(b,key){
+  let f=null;
+  eachCell(b,c=>{if(!f&&c.role===key)f=c});
+  if(!f)eachCell(b,c=>{if(!f&&c.role===undefined&&c.type!=='sketch'&&ROLE_RX[key].test(c.label))f=c});
+  return f;
+}
+function roleOf(b,c){for(const [k] of ROLES)if(roleCell(b,k)===c)return k;return ''}
+function migrateBoard(b,addKoumoku){
   if(b.rows&&b.rows.length&&!b.rows[0].cells)b.rows=b.rows.map(r=>R([C(r.label,r.value||'',r.auto?{auto:r.auto}:{})]));
   if(!b.rows||!b.rows.length)b.rows=TEMPLATES.blank.rows();
   if(b.labW==null)b.labW=.25;if(b.opacity==null)b.opacity=1;b.pos=b.pos||defPos();
   b.rows.forEach(r=>{r.h=+r.h||1;r.cells.forEach(c=>{c.id=c.id||uid();c.w=+c.w||1;c.type=c.type||'item';c.align=c.align||'left';if(c.value==null)c.value='';if(c.label==null)c.label=''})});
+  if(addKoumoku&&!roleCell(b,'koumoku')){
+    const after=['sokuten','kosyu','koji'].map(k=>roleCell(b,k)).find(Boolean);
+    let idx=b.rows.length;if(after)b.rows.forEach((r,i)=>{if(r.cells.includes(after))idx=i+1});
+    b.rows.splice(idx,0,R([C('撮影項目')]));
+  }
   return b;
 }
-const defSettings=()=>({v:2,size:1600,dateFmt:'ymd',grid:true,autoExport:true,gps:true});
+const defSettings=()=>({v:3,size:1600,dateFmt:'ymd',grid:true,gps:true,still:true,local:fsOK?'folder':'download',cloud:'off',gClient:'',msClient:'',cloudRoot:'現場黒板'});
 function load(){
   try{
-    const s=JSON.parse(localStorage.getItem(LS));
+    const s=lsGet(LS);
     if(s&&Array.isArray(s.boards)&&s.boards.length){
-      const old=s.settings||{};s.settings=Object.assign(defSettings(),old);
-      if(!old.v||old.v<2){s.settings.autoExport=true;s.settings.gps=true;s.settings.v=2}
-      s.boards.forEach(migrateBoard);return s;
+      const old=s.settings||{},v=old.v||1;s.settings=Object.assign(defSettings(),old);
+      if(v<2){s.settings.gps=true}
+      if(v<3){s.settings.local=old.autoExport===false?'off':(fsOK?'folder':'download');delete s.settings.autoExport}
+      s.settings.v=3;
+      s.boards.forEach(b=>migrateBoard(b,v<3));return s;
     }
   }catch(e){}
   const b=defaultBoard();return {boards:[b],cur:b.id,settings:defSettings()};
 }
 let state=load();
+const S=()=>state.settings;
 function save(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){toast('黒板を保存できませんでした（容量不足の可能性があります）')}}
 const cur=()=>state.boards.find(b=>b.id===state.cur)||state.boards[0];
 function dateText(d){
   const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();
-  if(state.settings.dateFmt==='dot')return `${y}.${p2(m)}.${p2(dd)}`;
-  if(state.settings.dateFmt==='wareki')return `令和${y-2018}年${m}月${dd}日`;
+  if(S().dateFmt==='dot')return `${y}.${p2(m)}.${p2(dd)}`;
+  if(S().dateFmt==='wareki')return `令和${y-2018}年${m}月${dd}日`;
   return `${y}年${m}月${dd}日`;
 }
+
+/* ---------- 保存先とファイル名 ---------- */
+function safeName(s){return String(s||'').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').replace(/\s+/g,' ').trim().replace(/^\.+|\.+$/g,'').slice(0,60)}
+function roleVal(b,key,date){const c=roleCell(b,key);if(!c)return '';return safeName(c.auto==='date'?dateText(date):c.value)}
+function savePath(b,date){return [roleVal(b,'koji',date)||'工事名なし',roleVal(b,'kosyu',date)||'工種なし',roleVal(b,'sokuten',date)||'測点なし',roleVal(b,'koumoku',date)||'撮影項目なし']}
+function saveName(b,date){
+  const k=roleVal(b,'kosyu',date),m=roleVal(b,'koumoku',date);
+  const base=[k,m].filter(Boolean).join('_')||`写真_${date.getFullYear()}${p2(date.getMonth()+1)}${p2(date.getDate())}_${p2(date.getHours())}${p2(date.getMinutes())}${p2(date.getSeconds())}`;
+  return base+'.jpg';
+}
+function splitName(n){const i=n.lastIndexOf('.');return i>0?[n.slice(0,i),n.slice(i)]:[n,'']}
 
 /* ---------- 黒板の描画 ---------- */
 const ST=b=>STYLES[b.style]||STYLES.green;
@@ -520,10 +582,10 @@ boardBox.addEventListener('pointerup',endDrag);
 boardBox.addEventListener('pointercancel',endDrag);
 
 /* ---------- カメラ ---------- */
-let stream=null,track=null,facing='environment',torch=false;
+let stream=null,track=null,facing='environment',torch=false,imgCap=null;
 const camMsg=$('camMsg');
 function showMsg(html){camMsg.innerHTML=html;camMsg.hidden=false}
-function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;track=null}
+function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;track=null;imgCap=null}
 async function startCam(){
   stopCam();startGeo();
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
@@ -538,6 +600,7 @@ async function startCam(){
   camMsg.hidden=true;
   video.srcObject=stream;try{await video.play()}catch(e){}
   track=stream.getVideoTracks()[0];torch=false;
+  try{imgCap=('ImageCapture' in window)?new ImageCapture(track):null}catch(e){imgCap=null}
   const caps=track.getCapabilities?track.getCapabilities():{};
   $('torchBtn').hidden=!caps.torch;$('torchBtn').classList.remove('on');
   layout();wake();
@@ -553,7 +616,7 @@ $('torchBtn').onclick=async()=>{
 };
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){stopCam();stopGeo()}
-  else if(mode==='camera')startCam();else startGeo();
+  else{if(mode==='camera')startCam();else startGeo();processQueue()}
 });
 let lock=null;
 async function wake(){try{if('wakeLock' in navigator&&!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>lock=null)}}catch(e){}}
@@ -562,7 +625,7 @@ async function wake(){try{if('wakeLock' in navigator&&!lock){lock=await navigato
 let fix=null,geoId=null,geoDenied=false;
 function startGeo(){
   updGeo();
-  if(!state.settings.gps||geoId!==null||!navigator.geolocation)return;
+  if(!S().gps||geoId!==null||!navigator.geolocation)return;
   geoId=navigator.geolocation.watchPosition(p=>{
     fix={lat:p.coords.latitude,lon:p.coords.longitude,alt:p.coords.altitude,acc:p.coords.accuracy,time:Date.now()};geoDenied=false;updGeo();
   },e=>{if(e.code===1){geoDenied=true;stopGeo()}updGeo()},{enableHighAccuracy:true,maximumAge:20000,timeout:60000});
@@ -570,8 +633,8 @@ function startGeo(){
 function stopGeo(){if(geoId!==null&&navigator.geolocation)navigator.geolocation.clearWatch(geoId);geoId=null}
 const freshFix=()=>fix&&Date.now()-fix.time<180000?fix:null;
 function updGeo(){
-  const b=$('geoBtn');b.hidden=!state.settings.gps;
-  b.classList.toggle('ok',!!freshFix());b.classList.toggle('ng',geoDenied);
+  const b=$('geoBtn');b.hidden=!S().gps;
+  b.className='ib '+(geoDenied?'ng':freshFix()?'ok':'dim');
   b.title=geoDenied?'位置情報が許可されていません':freshFix()?`位置情報を記録します（誤差 約${Math.round(fix.acc)}m）`:'位置情報を取得中';
 }
 $('geoBtn').onclick=()=>toast($('geoBtn').title);
@@ -611,24 +674,36 @@ function cleanExif(d){
     d[k]=o;
   }
   d['1st']={};d.thumbnail=null;
-  delete d['0th'][piexif.ImageIFD.Orientation];
   return d;
 }
-function buildExif(base,w,h,date,b){
+const hasExif=d=>d&&(Object.keys(d['0th']||{}).length+Object.keys(d.Exif||{}).length)>0;
+// カメラ映像から撮った時に、取得できるカメラの設定値を書き込む
+function trackExif(d){
+  if(!track||!track.getSettings)return;
+  const s=track.getSettings(),E=piexif.ExifIFD;
+  if(s.iso)d.Exif[E.ISOSpeedRatings]=Math.round(s.iso);
+  if(s.exposureTime)d.Exif[E.ExposureTime]=[Math.round(s.exposureTime),10000];
+  if(s.zoom&&s.zoom>1)d.Exif[E.DigitalZoomRatio]=[Math.round(s.zoom*100),100];
+  if(s.whiteBalanceMode)d.Exif[E.WhiteBalance]=s.whiteBalanceMode==='manual'?1:0;
+  if(s.exposureMode)d.Exif[E.ExposureMode]=s.exposureMode==='manual'?1:0;
+}
+// base: 元の撮影データ（カメラ静止画や読み込んだ写真）。fromCam: このアプリで今撮った
+function buildExif(base,w,h,date,b,fromCam){
   const I=piexif.ImageIFD,E=piexif.ExifIFD;
-  const d=base?cleanExif(base):{'0th':{},'Exif':{},'GPS':{},'Interop':{},'1st':{},thumbnail:null};
+  const has=hasExif(base);
+  const d=has?cleanExif(base):{'0th':{},'Exif':{},'GPS':{},'Interop':{},'1st':{},thumbnail:null};
   const txt=boardText(b,date);
   d['0th'][I.Orientation]=1;
   d['0th'][I.Software]='Genba Kokuban '+VER;
-  if(!base){
-    d['0th'][I.DateTime]=exifDT(date);
-    if(devModel)d['0th'][I.Model]=devModel;
-    d.Exif[E.DateTimeOriginal]=exifDT(date);d.Exif[E.DateTimeDigitized]=exifDT(date);
-    const f=freshFix();if(state.settings.gps&&f)d.GPS=gpsIfd(f);
-  }else if(!d.Exif[E.DateTimeOriginal]){d.Exif[E.DateTimeOriginal]=exifDT(date)}
+  if(!d['0th'][I.Model]&&devModel)d['0th'][I.Model]=devModel;
+  if(!d['0th'][I.DateTime]||fromCam)d['0th'][I.DateTime]=exifDT(date);
+  if(!d.Exif[E.DateTimeOriginal]||fromCam){d.Exif[E.DateTimeOriginal]=exifDT(date);d.Exif[E.DateTimeDigitized]=exifDT(date)}
+  if(fromCam&&!has)trackExif(d);
+  if(fromCam){const f=freshFix();if(S().gps&&f)d.GPS=gpsIfd(f);else if(!S().gps)d.GPS={}}
   d['0th'][I.XPComment]=xpBytes(txt);
   d.Exif[E.UserComment]=userComment(txt);
   d.Exif[E.PixelXDimension]=w;d.Exif[E.PixelYDimension]=h;
+  delete d['0th'][I.ImageWidth];delete d['0th'][I.ImageLength];
   return d;
 }
 function dataURLtoBlob(u){const bin=atob(u.split(',')[1]),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:'image/jpeg'})}
@@ -643,17 +718,20 @@ function withExif(c,dict){
   }
   return {blob:dataURLtoBlob(url),ok:false};
 }
-async function fileBinary(f){
+async function blobBinary(f){
   const u8=new Uint8Array(await f.arrayBuffer());let s='';
   for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));
   return s;
+}
+async function readExif(blob){
+  try{const bin=await blobBinary(blob);if(bin.slice(0,2)!=='\xff\xd8')return null;const d=piexif.load(bin);return hasExif(d)?d:null}catch(e){return null}
 }
 
 /* ---------- 撮影・合成 ---------- */
 let busy=false;
 const flashEl=$('flash');
 function flash(){flashEl.classList.add('go');requestAnimationFrame(()=>requestAnimationFrame(()=>flashEl.classList.remove('go')))}
-function outSize(w,h){const L=+state.settings.size;const k=L?Math.min(1,L/Math.max(w,h)):1;return [Math.round(w*k),Math.round(h*k)]}
+function outSize(w,h){const L=+S().size;const k=L?Math.min(1,L/Math.max(w,h)):1;return [Math.round(w*k),Math.round(h*k)]}
 function compose(src,sw,sh,date){
   const [w,h]=outSize(sw,sh),c=document.createElement('canvas');c.width=w;c.height=h;
   const ctx=c.getContext('2d');ctx.drawImage(src,0,0,w,h);
@@ -663,36 +741,57 @@ function compose(src,sw,sh,date){
   return c;
 }
 const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
-function fileName(d){
-  const b=cur();let sk=null;eachCell(b,c=>{if(!sk&&/測点|箇所|位置/.test(c.label)&&c.value)sk=c});
-  let tag=(sk&&sk.value)||b.name||'';tag=tag.replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,30);
-  return `${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}${tag?'_'+tag:''}.jpg`;
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+// カメラの静止画撮影。プレビューと縦横が違う時などは null を返して映像から撮る
+async function takeStill(){
+  if(!S().still||!imgCap||facing!=='environment')return null;
+  try{
+    const blob=await withTimeout(imgCap.takePhoto(),6000);
+    const exif=await readExif(blob);
+    const bmp=await createImageBitmap(blob,{imageOrientation:'from-image'});
+    const pv=video.videoWidth>=video.videoHeight,sv=bmp.width>=bmp.height;
+    if(pv!==sv){bmp.close&&bmp.close();return null}
+    return {bmp,exif};
+  }catch(e){return null}
 }
-async function store(c,date,baseExif){
-  const dict=buildExif(baseExif?clone(baseExif):null,c.width,c.height,date,cur());
+async function store(c,date,baseExif,fromCam){
+  const b=cur();
+  const dict=buildExif(baseExif?clone(baseExif):null,c.width,c.height,date,b,fromCam);
   const {blob,ok}=withExif(c,dict);
   const tk=Math.min(1,320/Math.max(c.width,c.height)),t=document.createElement('canvas');
   t.width=Math.round(c.width*tk);t.height=Math.round(c.height*tk);t.getContext('2d').drawImage(c,0,0,t.width,t.height);
   const thumb=await toBlob(t,.8);
-  const gps=dict.GPS&&dict.GPS[piexif.GPSIFD.GPSLatitude]?true:false;
-  const rec={id:uid(),created:Date.now(),shot:date.getTime(),name:fileName(date),board:cur().name,w:c.width,h:c.height,gps,exif:ok,blob,thumb};
+  const gps=!!(dict.GPS&&dict.GPS[piexif.GPSIFD.GPSLatitude]);
+  const cam=!!(dict['0th'][piexif.ImageIFD.Make]||dict.Exif[piexif.ExifIFD.FNumber]||dict.Exif[piexif.ExifIFD.ExposureTime]);
+  const rec={id:uid(),created:Date.now(),shot:date.getTime(),name:saveName(b,date),path:savePath(b,date),board:b.name,w:c.width,h:c.height,gps,cam,exif:ok,
+    cloud:S().cloud!=='off'?'pending':null,blob,thumb};
   await dbPut(rec);
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   refreshThumb();
   if(!ok)toast('撮影データを書き込めませんでした（写真は保存済み）');
   return rec;
 }
+// シャッターを押した直後に呼ぶ（フォルダ書き込みの許可確認はタップ直後でないと出せないため）
+function askLocalPerm(){
+  if(S().local!=='folder'||!rootDir)return Promise.resolve(false);
+  try{return rootDir.requestPermission({mode:'readwrite'}).then(s=>s==='granted').catch(()=>false)}catch(e){return Promise.resolve(false)}
+}
 async function shoot(){
   if(busy)return;
   if(mode==='photo')return savePhoto();
   if(!video.videoWidth){toast('カメラの準備ができていません');return}
-  busy=true;flash();
+  const perm=askLocalPerm();
+  busy=true;$('shutter').classList.add('busy');flash();
   try{
-    const d=new Date(),c=compose(video,video.videoWidth,video.videoHeight,d);
-    const rec=await store(c,d,null);
-    if(state.settings.autoExport)await exportRecs([rec],'save',true);
+    const d=new Date();
+    const st=await takeStill();
+    let c,exif=null;
+    if(st){c=compose(st.bmp,st.bmp.width,st.bmp.height,d);exif=st.exif;st.bmp.close&&st.bmp.close()}
+    else c=compose(video,video.videoWidth,video.videoHeight,d);
+    const rec=await store(c,d,exif,true);
+    await deliver(rec,await perm);
   }catch(e){toast('保存できませんでした：'+(e&&e.message||e))}
-  busy=false;
+  busy=false;$('shutter').classList.remove('busy');
 }
 $('shutter').onclick=shoot;
 
@@ -713,11 +812,8 @@ async function nextPhoto(){
   const url=URL.createObjectURL(f);
   still.src=url;
   try{await still.decode()}catch(e){URL.revokeObjectURL(url);toast('この写真は読み込めませんでした');return nextPhoto()}
-  let exif=null,date=null;
-  try{
-    const bin=await fileBinary(f);
-    if(bin.slice(0,2)==='\xff\xd8'){exif=piexif.load(bin);date=parseExifDT(exif.Exif&&exif.Exif[piexif.ExifIFD.DateTimeOriginal])||parseExifDT(exif['0th']&&exif['0th'][piexif.ImageIFD.DateTime])}
-  }catch(e){exif=null}
+  const exif=await readExif(f);
+  const date=exif&&(parseExifDT(exif.Exif&&exif.Exif[piexif.ExifIFD.DateTimeOriginal])||parseExifDT(exif['0th']&&exif['0th'][piexif.ImageIFD.DateTime]));
   photo={url,file:f,exif,date:date||new Date(f.lastModified||Date.now())};
   mode='photo';stopCam();
   video.hidden=true;still.hidden=false;camMsg.hidden=true;
@@ -727,11 +823,13 @@ async function nextPhoto(){
   layout();
 }
 async function savePhoto(){
-  if(!photo)return;busy=true;flash();
+  if(!photo||busy)return;
+  const perm=askLocalPerm();
+  busy=true;flash();
   try{
     const c=compose(still,still.naturalWidth,still.naturalHeight,photo.date);
-    const rec=await store(c,photo.date,photo.exif);
-    if(state.settings.autoExport)await exportRecs([rec],'save',true);
+    const rec=await store(c,photo.date,photo.exif,false);
+    await deliver(rec,await perm);
   }catch(e){toast('保存できませんでした')}
   busy=false;nextPhoto();
 }
@@ -747,45 +845,269 @@ $('photoCancel').onclick=exitPhoto;
 /* ---------- IndexedDB ---------- */
 let dbp=null;
 function idb(){
-  if(!dbp)dbp=new Promise((res,rej)=>{const r=indexedDB.open('genba-kokuban',1);
-    r.onupgradeneeded=()=>r.result.createObjectStore('photos',{keyPath:'id'});
+  if(!dbp)dbp=new Promise((res,rej)=>{const r=indexedDB.open('genba-kokuban',2);
+    r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos',{keyPath:'id'});if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv')};
     r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
   return dbp;
 }
-async function tx(m,fn){
+async function tx(store,m,fn){
   const db=await idb();
-  return new Promise((res,rej)=>{const t=db.transaction('photos',m);let out;const r=fn(t.objectStore('photos'));
+  return new Promise((res,rej)=>{const t=db.transaction(store,m);let out;const r=fn(t.objectStore(store));
     if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)});
 }
-const dbPut=rec=>tx('readwrite',s=>s.put(rec));
-const dbAll=async()=>((await tx('readonly',s=>s.getAll()))||[]).sort((a,b)=>b.created-a.created);
-const dbDel=ids=>tx('readwrite',s=>{ids.forEach(id=>s.delete(id))});
+const dbPut=rec=>tx('photos','readwrite',s=>s.put(rec));
+const dbGet=id=>tx('photos','readonly',s=>s.get(id));
+const dbAll=async()=>((await tx('photos','readonly',s=>s.getAll()))||[]).sort((a,b)=>b.created-a.created);
+const dbDel=ids=>tx('photos','readwrite',s=>{ids.forEach(id=>s.delete(id))});
+const kvGet=k=>tx('kv','readonly',s=>s.get(k));
+const kvSet=(k,v)=>tx('kv','readwrite',s=>s.put(v,k));
+const recPath=r=>r.path&&r.path.length?r.path:['未分類'];
 
-/* ---------- スマホへの保存 ---------- */
+/* ---------- スマホ内のフォルダ ---------- */
+let rootDir=null;
+async function pickRoot(){
+  if(!fsOK){toast('この端末ではフォルダを選べません');return}
+  try{
+    let h;
+    try{h=await showDirectoryPicker({id:'genba-kokuban',mode:'readwrite',startIn:'pictures'})}
+    catch(e){if(e&&e.name==='AbortError')throw e;h=await showDirectoryPicker({mode:'readwrite'})}
+    rootDir=h;await kvSet('root',h);S().local='folder';save();renderSettings();
+    toast(`「${h.name}」の中に工事名ごとのフォルダを作って保存します`);
+  }catch(e){if(!e||e.name!=='AbortError')toast('フォルダを選べませんでした：'+(e&&e.message||e))}
+}
+async function uniqueLocal(dir,name){
+  const [b,e]=splitName(name);
+  for(let i=1;i<1000;i++){
+    const n=i===1?name:`${b}_${i}${e}`;
+    try{await dir.getFileHandle(n)}catch(err){if(err&&err.name==='NotFoundError')return n;if(err&&err.name==='TypeMismatchError')continue;throw err}
+  }
+  return `${b}_${Date.now()}${e}`;
+}
+async function saveLocal(rec){
+  let d=rootDir;for(const seg of recPath(rec))d=await d.getDirectoryHandle(seg,{create:true});
+  const name=await uniqueLocal(d,rec.name);
+  const fh=await d.getFileHandle(name,{create:true});const w=await fh.createWritable();
+  await w.write(rec.blob);await w.close();
+  return name;
+}
+
+/* ---------- 保存（スマホ・クラウド） ---------- */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function exportRecs(recs,how,quiet){
-  if(!recs.length)return;
-  const files=recs.map(r=>new File([r.blob],r.name,{type:'image/jpeg'}));
-  const useShare=how==='share'||(how==='save'&&isIOS);
-  if(useShare&&navigator.canShare&&navigator.canShare({files})){
-    try{await navigator.share({files});return}
-    catch(e){if(e&&e.name==='AbortError')return;if(how==='save'&&isIOS){toast('保存の画面を開けませんでした。写真一覧から保存してください');return}}
-  }else if(how==='share'){toast('この端末では共有を使えないため、スマホに保存します')}
-  for(const f of files){
-    const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();
+async function downloadRecs(recs){
+  for(const r of recs){
+    const a=document.createElement('a');a.href=URL.createObjectURL(r.blob);a.download=r.name;document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000);await sleep(350);
   }
-  toast(quiet?'スマホに保存しました':`${files.length}枚をスマホに保存しました`);
+}
+async function shareRecs(recs){
+  const files=recs.map(r=>new File([r.blob],r.name,{type:'image/jpeg'}));
+  if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files});return true}catch(e){return e&&e.name==='AbortError'}}
+  return false;
+}
+// 撮影直後の保存
+async function deliver(rec,permOK){
+  const m=S().local;let msg='';
+  if(m==='folder'&&rootDir&&permOK){
+    try{const n=await saveLocal(rec);rec.localName=n;await dbPut(rec);msg=`保存：${rootDir.name}/${recPath(rec).join('/')}/${n}`}
+    catch(e){await downloadRecs([rec]);msg='フォルダに保存できなかったため、ダウンロードに保存しました'}
+  }else if(m==='folder'){
+    if(isIOS)await shareRecs([rec]);else await downloadRecs([rec]);
+    msg=rootDir?'フォルダへの書き込みが許可されなかったため、ダウンロードに保存しました':'親フォルダが未設定のため、ダウンロードに保存しました（設定で選べます）';
+  }else if(m==='download'){
+    if(isIOS)await shareRecs([rec]);else{await downloadRecs([rec]);msg='ダウンロードに保存しました：'+rec.name}
+  }else msg='アプリ内に保存しました';
+  if(msg)toast(msg);
+  if(rec.cloud==='pending')processQueue();
+}
+// 一覧からの保存
+async function saveRecs(recs){
+  if(!recs.length)return;
+  if(S().local==='folder'&&rootDir){
+    let ok=false;try{ok=(await rootDir.requestPermission({mode:'readwrite'}))==='granted'}catch(e){}
+    if(ok){let n=0;for(const r of recs){try{r.localName=await saveLocal(r);await dbPut(r);n++}catch(e){}}toast(`${n}枚を「${rootDir.name}」に保存しました`);return}
+  }
+  if(isIOS){await shareRecs(recs);return}
+  await downloadRecs(recs);toast(`${recs.length}枚をダウンロードに保存しました`);
+}
+
+/* ---------- クラウド共通 ---------- */
+let uploading=false,needAuth=false,lastCloudErr='';
+const cloudName=()=>({gdrive:'Googleドライブ',onedrive:'OneDrive'})[S().cloud]||'';
+const cloudRoot=()=>safeName(S().cloudRoot)||'現場黒板';
+function cloudReady(){
+  if(S().cloud==='gdrive')return !!(gTok&&gTok.exp>Date.now());
+  if(S().cloud==='onedrive')return !!(msTok&&(msTok.refresh||msTok.exp>Date.now()));
+  return false;
+}
+async function cloudUpload(rec){
+  if(S().cloud==='gdrive')return gUploadRec(rec);
+  if(S().cloud==='onedrive')return msUploadRec(rec);
+  throw new Error('クラウドが選ばれていません');
+}
+async function processQueue(){
+  if(uploading||S().cloud==='off')return updCloud();
+  if(!cloudReady()){needAuth=true;return updCloud()}
+  if(!navigator.onLine)return updCloud();
+  uploading=true;updCloud();
+  try{
+    const all=(await dbAll()).filter(r=>r.cloud==='pending'||r.cloud==='error').reverse();
+    for(const meta of all){
+      const r=await dbGet(meta.id);if(!r)continue;
+      try{r.cloudName=await cloudUpload(r);r.cloud='done';r.cloudErr='';lastCloudErr=''}
+      catch(e){
+        if(e&&e.auth){needAuth=true;break}
+        r.cloud='error';r.cloudErr=String(e&&e.message||e);lastCloudErr=r.cloudErr;
+      }
+      await dbPut(r);updCloud();
+    }
+  }finally{uploading=false;updCloud()}
+}
+window.addEventListener('online',()=>processQueue());
+async function pendingCount(){try{return (await dbAll()).filter(r=>r.cloud==='pending'||r.cloud==='error').length}catch(e){return 0}}
+async function updCloud(){
+  const b=$('cloudBtn'),on=S().cloud!=='off';b.hidden=!on;
+  if(!on)return;
+  const n=await pendingCount(),cnt=b.querySelector('.cnt');
+  cnt.textContent=n;cnt.hidden=!n;
+  const ready=cloudReady();if(ready)needAuth=false;
+  b.className='ib '+(!ready?'ng':uploading?'warn':lastCloudErr?'ng':n?'warn':'ok');
+  b.title=!ready?`${cloudName()}に接続してください（タップで接続）`:uploading?`${cloudName()}へ送信中`:lastCloudErr?'送信に失敗しました：'+lastCloudErr:n?`未送信 ${n}枚（タップで送信）`:`${cloudName()}に送信済み`;
+  if(!$('settings').hidden)renderCloudBox();
+}
+$('cloudBtn').onclick=()=>{
+  if(!cloudReady()){cloudConnect();return}
+  toast($('cloudBtn').title);processQueue();
+};
+function cloudConnect(){
+  if(S().cloud==='gdrive')return gConnect();
+  if(S().cloud==='onedrive')return msLogin();
+}
+function cloudDisconnect(){
+  if(S().cloud==='gdrive'){try{gTok&&google.accounts.oauth2.revoke(gTok.access,()=>{})}catch(e){}gTok=null;lsSet('gk_g_tok',null)}
+  if(S().cloud==='onedrive'){msTok=null;lsSet('gk_ms_tok',null)}
+  updCloud();renderCloudBox();toast('接続を解除しました');
+}
+
+/* ---------- Googleドライブ ---------- */
+let gTok=lsGet('gk_g_tok'),gClient=null,gLoading=null;
+const GAPI='https://www.googleapis.com/drive/v3/files';
+let gFold=lsGet('gk_gfold')||{};
+function loadGsi(){
+  if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+  if(gLoading)return gLoading;
+  gLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>res();s.onerror=()=>{gLoading=null;rej(new Error('Googleのログイン部品を読み込めませんでした'))};document.head.appendChild(s)});
+  return gLoading;
+}
+async function initGoogle(){
+  if(S().cloud!=='gdrive'||!S().gClient)return;
+  try{
+    await loadGsi();
+    gClient=google.accounts.oauth2.initTokenClient({
+      client_id:S().gClient.trim(),scope:'https://www.googleapis.com/auth/drive.file',
+      callback:r=>{
+        if(r.error){toast('Googleドライブに接続できませんでした：'+r.error);return}
+        gTok={access:r.access_token,exp:Date.now()+(Number(r.expires_in||3600)-60)*1000};lsSet('gk_g_tok',gTok);
+        needAuth=false;toast('Googleドライブに接続しました');updCloud();renderCloudBox();processQueue();
+      },
+      error_callback:e=>toast('Googleドライブに接続できませんでした：'+(e&&e.type||''))
+    });
+  }catch(e){gClient=null;toast(e.message)}
+}
+function gConnect(){
+  if(!S().gClient){openSheet('settings');toast('先にGoogleのクライアントIDを入れてください');return}
+  if(!gClient){initGoogle().then(()=>toast('準備ができました。もう一度押してください'));return}
+  gClient.requestAccessToken({prompt:''});
+}
+async function gReq(url,opt={}){
+  if(!gTok||gTok.exp<=Date.now())throw {auth:true};
+  opt.headers=Object.assign({Authorization:'Bearer '+gTok.access},opt.headers||{});
+  const r=await fetch(url,opt);
+  if(r.status===401){gTok=null;lsSet('gk_g_tok',null);throw {auth:true}}
+  if(!r.ok){const t=await r.text().catch(()=>'');const e=new Error(`Googleドライブ ${r.status} ${t.slice(0,140)}`);e.status=r.status;throw e}
+  return r.json();
+}
+const gq=s=>s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+async function gFolder(name,parent){
+  const key=parent+'/'+name;if(gFold[key])return gFold[key];
+  const q=`name='${gq(name)}' and '${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const r=await gReq(`${GAPI}?fields=files(id)&spaces=drive&q=${encodeURIComponent(q)}`);
+  let id=r.files&&r.files[0]&&r.files[0].id;
+  if(!id)id=(await gReq(`${GAPI}?fields=id`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:[parent]})})).id;
+  gFold[key]=id;lsSet('gk_gfold',gFold);return id;
+}
+async function gUploadRec(rec,retry){
+  try{
+    let parent='root';for(const seg of [cloudRoot(),...recPath(rec)])parent=await gFolder(seg,parent);
+    const [base,ext]=splitName(rec.name);
+    const ex=await gReq(`${GAPI}?fields=files(name)&pageSize=1000&q=${encodeURIComponent(`'${parent}' in parents and trashed=false and name contains '${gq(base)}'`)}`);
+    const names=new Set((ex.files||[]).map(f=>f.name));let name=rec.name;for(let i=2;names.has(name);i++)name=`${base}_${i}${ext}`;
+    const bnd='gk'+uid();
+    const body=new Blob([`--${bnd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name,parents:[parent]})}\r\n--${bnd}\r\nContent-Type: image/jpeg\r\n\r\n`,rec.blob,`\r\n--${bnd}--`]);
+    await gReq('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+bnd},body});
+    return name;
+  }catch(e){
+    if(!retry&&e&&e.status===404){gFold={};lsSet('gk_gfold',gFold);return gUploadRec(rec,true)}
+    throw e;
+  }
+}
+
+/* ---------- OneDrive ---------- */
+let msTok=lsGet('gk_ms_tok');
+const MS_AUTH='https://login.microsoftonline.com/common/oauth2/v2.0';
+const MS_SCOPE='Files.ReadWrite offline_access User.Read';
+const redirectUri=()=>location.origin+location.pathname;
+const b64url=u8=>btoa(String.fromCharCode(...u8)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function msLogin(){
+  if(!S().msClient){openSheet('settings');toast('先にMicrosoftのクライアントIDを入れてください');return}
+  const verifier=b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const challenge=b64url(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
+  const st=uid();lsSet('gk_ms_pkce',{verifier,state:st});
+  const q=new URLSearchParams({client_id:S().msClient.trim(),response_type:'code',redirect_uri:redirectUri(),response_mode:'query',scope:MS_SCOPE,state:st,code_challenge:challenge,code_challenge_method:'S256',prompt:'select_account'});
+  location.href=`${MS_AUTH}/authorize?${q}`;
+}
+function saveMsTok(j){msTok={access:j.access_token,exp:Date.now()+(Number(j.expires_in||3600)-60)*1000,refresh:j.refresh_token||(msTok&&msTok.refresh)||null};lsSet('gk_ms_tok',msTok)}
+async function msHandleRedirect(){
+  const u=new URL(location.href),code=u.searchParams.get('code'),err=u.searchParams.get('error');
+  if(!code&&!err)return;
+  history.replaceState(null,'',redirectUri());
+  const pk=lsGet('gk_ms_pkce');lsSet('gk_ms_pkce',null);
+  if(err){toast('OneDriveに接続できませんでした：'+(u.searchParams.get('error_description')||err).slice(0,120));return}
+  if(!pk||pk.state!==u.searchParams.get('state')){toast('OneDriveの接続を確認できませんでした。もう一度お試しください');return}
+  try{
+    const r=await fetch(MS_AUTH+'/token',{method:'POST',body:new URLSearchParams({client_id:S().msClient.trim(),grant_type:'authorization_code',code,redirect_uri:redirectUri(),code_verifier:pk.verifier,scope:MS_SCOPE})});
+    const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.error||r.status);
+    saveMsTok(j);needAuth=false;toast('OneDriveに接続しました');updCloud();processQueue();
+  }catch(e){toast('OneDriveに接続できませんでした：'+String(e.message||e).slice(0,120))}
+}
+async function msToken(){
+  if(msTok&&msTok.exp>Date.now())return msTok.access;
+  if(msTok&&msTok.refresh){
+    const r=await fetch(MS_AUTH+'/token',{method:'POST',body:new URLSearchParams({client_id:S().msClient.trim(),grant_type:'refresh_token',refresh_token:msTok.refresh,scope:MS_SCOPE})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){saveMsTok(j);return msTok.access}
+  }
+  msTok=null;lsSet('gk_ms_tok',null);throw {auth:true};
+}
+async function msUploadRec(rec,retry){
+  const t=await msToken();
+  const segs=[cloudRoot(),...recPath(rec),rec.name].map(encodeURIComponent).join('/');
+  const r=await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${segs}:/content?@microsoft.graph.conflictBehavior=rename`,{method:'PUT',headers:{Authorization:'Bearer '+t,'Content-Type':'image/jpeg'},body:rec.blob});
+  if(r.status===401&&!retry){msTok.exp=0;return msUploadRec(rec,true)}
+  if(r.status===401)throw {auth:true};
+  if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(`OneDrive ${r.status} ${tx.slice(0,140)}`)}
+  const j=await r.json();return j.name||rec.name;
 }
 
 /* ---------- 写真一覧 ---------- */
 let galRecs=[],sel=new Set(),urls=[];
 const GRID_ICON='<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>';
+const CLOUD_ST={done:'送信済',pending:'未送信',error:'失敗'};
 async function refreshThumb(){
   const all=await dbAll().catch(()=>[]);const btn=$('galBtn');
   if(btn._u)URL.revokeObjectURL(btn._u);
   if(all.length){btn._u=URL.createObjectURL(all[0].thumb);btn.innerHTML=`<img src="${btn._u}" alt=""><span class="badge">${all.length}</span>`}
   else{btn._u=null;btn.innerHTML=GRID_ICON}
+  updCloud();
 }
 function storeLine(list){const bytes=list.reduce((s,r)=>s+(r.blob.size||0),0);return `アプリ内の写真：${list.length}枚（約${(bytes/1048576).toFixed(1)}MB）`}
 async function renderGallery(){
@@ -794,12 +1116,13 @@ async function renderGallery(){
   sel.forEach(id=>{if(!galRecs.some(r=>r.id===id))sel.delete(id)});
   if(!galRecs.length)el.innerHTML='<div class="empty" style="grid-column:1/-1">まだ写真がありません。<br>撮影するとここにも控えが残ります。</div>';
   else el.innerHTML=galRecs.map(r=>{const u=URL.createObjectURL(r.thumb);urls.push(u);
-    return `<div class="gi${sel.has(r.id)?' sel':''}" data-id="${r.id}"><img src="${u}" alt="${esc(r.name)}"><button class="chk" data-chk aria-label="選択"></button></div>`}).join('');
+    return `<div class="gi${sel.has(r.id)?' sel':''}" data-id="${r.id}"><img src="${u}" alt="${esc(r.name)}">${r.cloud?`<span class="st ${r.cloud}">${CLOUD_ST[r.cloud]||''}</span>`:''}<button class="chk" data-chk aria-label="選択"></button></div>`}).join('');
+  $('selCloud').hidden=S().cloud==='off';
   updSel();
 }
 function updSel(){
   const n=sel.size;$('selCnt').textContent=`${n}枚選択／全${galRecs.length}枚`;
-  ['selDel','selShare','selSave'].forEach(id=>$(id).disabled=!n);
+  ['selDel','selShare','selSave','selCloud'].forEach(id=>$(id).disabled=!n);
   $('selAll').textContent=n&&n===galRecs.length?'選択を解除':'すべて選択';
 }
 $('galEl').addEventListener('click',e=>{
@@ -809,23 +1132,33 @@ $('galEl').addEventListener('click',e=>{
 });
 $('selAll').onclick=()=>{if(sel.size===galRecs.length)sel.clear();else galRecs.forEach(r=>sel.add(r.id));renderGallery()};
 const selected=()=>galRecs.filter(r=>sel.has(r.id));
-$('selSave').onclick=()=>exportRecs(selected(),'save');
-$('selShare').onclick=()=>exportRecs(selected(),'share');
-$('selDel').onclick=async()=>{const n=sel.size;if(!confirm(`${n}枚の写真をアプリから削除します。スマホに保存した写真は消えません。`))return;await dbDel([...sel]);sel.clear();await renderGallery();refreshThumb();toast(`${n}枚を削除しました`)};
+$('selSave').onclick=()=>saveRecs(selected());
+$('selShare').onclick=async()=>{if(!(await shareRecs(selected())))toast('この端末では共有を使えません')};
+$('selCloud').onclick=async()=>{
+  const recs=selected(),done=recs.filter(r=>r.cloud==='done').length;
+  const resend=done?confirm(`${done}枚は送信済みです。もう一度送りますか？（キャンセルで未送信の分だけ送ります）`):false;
+  for(const r of recs){if(r.cloud!=='done'||resend){r.cloud='pending';await dbPut(r)}}
+  sel.clear();await renderGallery();
+  if(!cloudReady()){toast(`${cloudName()}に接続すると送信します`);cloudConnect()}else{toast('送信を始めました');processQueue().then(renderGallery)}
+};
+$('selDel').onclick=async()=>{const n=sel.size;if(!confirm(`${n}枚の写真をアプリから削除します。スマホのフォルダやクラウドに保存した写真は消えません。`))return;await dbDel([...sel]);sel.clear();await renderGallery();refreshThumb();toast(`${n}枚を削除しました`)};
 
 let vRec=null,vUrl=null;
 function openViewer(r){
   vRec=r;if(vUrl)URL.revokeObjectURL(vUrl);vUrl=URL.createObjectURL(r.blob);
   $('vImg').src=vUrl;const d=new Date(r.shot||r.created);
-  const meta=r.exif===false?'撮影データなし':(r.gps?'位置情報あり':'位置情報なし');
-  $('vInfo').innerHTML=`${esc(r.name)}<br>${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}　${r.w}×${r.h}　${meta}`;
+  const meta=[r.exif===false?'撮影データなし':(r.cam?'カメラの撮影データあり':'撮影日時あり'),r.gps?'位置情報あり':'位置情報なし'].join('・');
+  const cl=r.cloud?`${cloudName()||'クラウド'}：${CLOUD_ST[r.cloud]||''}${r.cloud==='error'&&r.cloudErr?'（'+esc(r.cloudErr.slice(0,80))+'）':''}`:'';
+  $('vInfo').innerHTML=`${esc(recPath(r).join(' / '))}<br><b style="color:var(--fg)">${esc(r.localName||r.name)}</b><br>${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}　${r.w}×${r.h}　${meta}${cl?'<br>'+cl:''}`;
+  $('vCloud').hidden=S().cloud==='off'||r.cloud==='done'||r.cloud==='pending';
   $('viewer').hidden=false;
 }
 function closeViewer(){$('viewer').hidden=true;$('vImg').removeAttribute('src');if(vUrl)URL.revokeObjectURL(vUrl);vUrl=null;vRec=null}
 $('vClose').onclick=closeViewer;
-$('vSave').onclick=()=>vRec&&exportRecs([vRec],'save');
-$('vShare').onclick=()=>vRec&&exportRecs([vRec],'share');
-$('vDel').onclick=async()=>{if(!vRec||!confirm('この写真をアプリから削除します。スマホに保存した写真は消えません。'))return;await dbDel([vRec.id]);closeViewer();await renderGallery();refreshThumb();toast('削除しました')};
+$('vSave').onclick=()=>vRec&&saveRecs([vRec]);
+$('vShare').onclick=async()=>{if(vRec&&!(await shareRecs([vRec])))toast('この端末では共有を使えません')};
+$('vCloud').onclick=async()=>{if(!vRec)return;vRec.cloud='pending';await dbPut(vRec);$('vCloud').hidden=true;if(!cloudReady())cloudConnect();else{toast('送信を始めました');processQueue()}};
+$('vDel').onclick=async()=>{if(!vRec||!confirm('この写真をアプリから削除します。スマホのフォルダやクラウドに保存した写真は消えません。'))return;await dbDel([vRec.id]);closeViewer();await renderGallery();refreshThumb();toast('削除しました')};
 
 /* ---------- シート ---------- */
 const bd=$('bd');
@@ -846,7 +1179,7 @@ $('galBtn').onclick=()=>openSheet('gallery');
 
 /* ---------- 黒板の編集 ---------- */
 let tab='content',selCell=null;
-function changed(){save();renderBoard();if(tab==='layout')drawLP()}
+function changed(){save();renderBoard();if(tab==='layout')drawLP();updPath()}
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;renderEditor();$('editor').scrollTop=0};
 function renderEditor(){
   const b=cur();
@@ -859,6 +1192,12 @@ function renderEditor(){
   if(tab==='manage')renderManage();
 }
 $('boardSel').onchange=e=>{state.cur=e.target.value;selCell=null;changed();renderEditor()};
+function updPath(){
+  const el=$('pathBox');if(!el||$('tab-content').hidden)return;
+  const b=cur(),d=new Date(),p=savePath(b,d),miss=ROLES.filter(([k])=>!roleCell(b,k)).map(r=>r[1]);
+  el.innerHTML=`<small>保存先</small>${p.map(x=>`<b>${esc(x)}</b>`).join(' / ')} / ${esc(saveName(b,d))}`+
+    (miss.length?`<small style="color:var(--danger)">「${miss.join('」「')}」のマスがありません。「レイアウト」でマスを作るか、既存のマスを割り当ててください</small>`:'');
+}
 
 /* 内容タブ */
 function sketchThumb(c){
@@ -874,15 +1213,16 @@ function renderFields(){
     r.cells.forEach(c=>{
       const f=document.createElement('div');f.className='field';
       const cap=c.type==='text'?(c.label||'文字のマス'):(c.label||(c.type==='sketch'?'略図':'項目'));
+      const rk=roleOf(b,c),tag=rk?` <span class="role">${ROLE_NAME[rk]}で整理</span>`:'';
       if(c.type==='sketch'){
         f.innerHTML=`<span class="cap">${esc(cap)}</span><button class="skBtn pill"></button>`;
         const btn=f.querySelector('button');btn.appendChild(sketchThumb(c));btn.append(c.sketch&&c.sketch.strokes&&c.sketch.strokes.length?'描き直す':'描く');
         btn.onclick=()=>openSketch(c.id);
       }else if(c.auto==='date'){
-        f.innerHTML=`<span class="cap">${esc(cap)}</span><div class="auto"><span>${esc(dateText(new Date()))}</span><small>自動</small></div>`;
+        f.innerHTML=`<span class="cap">${esc(cap)}${tag}</span><div class="auto"><span>${esc(dateText(new Date()))}</span><small>自動</small></div>`;
       }else{
         const id='f_'+c.id;
-        f.innerHTML=`<label for="${id}">${esc(cap)}</label>`+(c.type==='text'||(+r.h||1)>1?`<textarea id="${id}"></textarea>`:`<input type="text" id="${id}" enterkeyhint="done">`);
+        f.innerHTML=`<label for="${id}">${esc(cap)}${tag}</label>`+(c.type==='text'||(+r.h||1)>1?`<textarea id="${id}"></textarea>`:`<input type="text" id="${id}" enterkeyhint="done">`);
         const inp=f.querySelector('input,textarea');inp.value=c.value;
         inp.oninput=()=>{c.value=inp.value;changed()};
         if(inp.tagName==='INPUT')inp.onkeydown=e=>{if(e.key==='Enter')inp.blur()};
@@ -891,6 +1231,7 @@ function renderFields(){
     });
     el.appendChild(grp);
   });
+  updPath();
 }
 
 /* レイアウトタブ */
@@ -914,6 +1255,7 @@ function renderLayout(){
   const f=findCell(selCell),{r,ri,c,ci}=f;
   const H=[1,1.5,2,3,4];
   const typeName={item:'項目',text:'文字だけ',sketch:'略図'};
+  const rk=roleOf(b,c);
   $('inspEl').innerHTML=`
   <div class="insp">
     <h3>選んだマス<small>${ri+1}行目・左から${ci+1}つ目</small></h3>
@@ -923,8 +1265,9 @@ function renderLayout(){
       <div class="kv"><span></span><div class="btns"><button class="pill ${c.auto==='date'?'on':''}" data-act="date">撮影日を自動で入れる</button></div></div>`:''}
     ${c.type==='text'?`<div class="kv"><span>内容</span><textarea id="iValue"></textarea></div>`:''}
     ${c.type==='sketch'?`<div class="kv"><span>略図</span><div class="btns"><button class="pill accent" data-act="draw">略図を描く</button></div></div>`:''}
+    ${c.type!=='sketch'?`<div class="kv"><span>整理に使う</span><select id="iRole"><option value="">使わない</option>${ROLES.map(([k,n,u])=>`<option value="${k}" ${rk===k?'selected':''}>${n}（${u}）</option>`).join('')}</select></div>`:''}
     ${c.type!=='sketch'?`<div class="kv"><span>文字の寄せ</span><div class="seg" data-k="align"><button data-v="left" class="${c.align!=='center'?'on':''}">左寄せ</button><button data-v="center" class="${c.align==='center'?'on':''}">中央</button></div></div>`:''}
-    <div class="kv"><span>マスの幅</span><div class="stepper"><button data-act="w-" aria-label="幅を狭く">−</button><b>${c.w}</b><button data-act="w+" aria-label="幅を広く">＋</button>${r.cells.length<2?'<small class="note" style="margin:0">（1マスだけの行は常に全幅）</small>':''}</div></div>
+    <div class="kv"><span>マスの幅</span><div class="stepper"><button data-act="w-" aria-label="幅を狭く">−</button><b>${c.w}</b><button data-act="w+" aria-label="幅を広く">＋</button>${r.cells.length<2?'<small class="note" style="margin:0">1マスの行は全幅</small>':''}</div></div>
     <div class="btns">
       <button class="pill" data-act="left" ${ci?'':'disabled'}>← 左へ</button>
       <button class="pill" data-act="right" ${ci<r.cells.length-1?'':'disabled'}>右へ →</button>
@@ -945,6 +1288,12 @@ function renderLayout(){
   </div>`;
   const il=$('iLabel');if(il){il.value=c.label;il.oninput=()=>{c.label=il.value;changed()}}
   const iv=$('iValue');if(iv){iv.value=c.value;iv.oninput=()=>{c.value=iv.value;changed()}}
+  const ir=$('iRole');if(ir)ir.onchange=()=>{
+    const k=ir.value;
+    if(k)eachCell(b,x=>{if(x!==c&&(x.role===k||roleOf(b,x)===k))x.role=''});
+    c.role=k;changed();renderLayout();
+    toast(k?`このマスを「${ROLE_NAME[k]}」として整理に使います`:'このマスは整理に使いません');
+  };
   document.querySelectorAll('#styleSeg [data-style]').forEach(x=>x.classList.toggle('on',x.dataset.style===b.style));
   $('opIn').value=Math.round(b.opacity*100);$('opTx').textContent=Math.round(b.opacity*100)+'%';
   $('labIn').value=Math.round(b.labW*100);$('labTx').textContent=Math.round(b.labW*100)+'%';
@@ -954,7 +1303,7 @@ $('inspEl').addEventListener('click',e=>{
   const segBtn=e.target.closest('.seg [data-v]');
   if(segBtn){
     const k=segBtn.parentElement.dataset.k,v=segBtn.dataset.v;
-    if(k==='type'){c.type=v;if(v!=='item')delete c.auto;if(v==='sketch'){if(!c.sketch)c.sketch=null;if(!c.label||c.label==='項目')c.label='略図'}if(v==='text')c.label=''}
+    if(k==='type'){c.type=v;if(v!=='item')delete c.auto;if(v==='sketch'){if(!c.sketch)c.sketch=null;if(!c.label||c.label==='項目')c.label='略図';c.role=''}if(v==='text')c.label=''}
     if(k==='align')c.align=v;
     if(k==='h')r.h=+v;
     changed();renderLayout();return;
@@ -1048,31 +1397,81 @@ $('skDone').onclick=()=>{
 };
 
 /* ---------- 設定 ---------- */
-function setSw(id,on){$(id).classList.toggle('on',on);$(id).setAttribute('aria-checked',on)}
+function setSw(id,on){$(id).classList.toggle('on',!!on);$(id).setAttribute('aria-checked',!!on)}
 function renderSettings(){
-  const s=state.settings;$('sizeSel').value=String(s.size);$('dateSel').value=s.dateFmt;
-  setSw('gridSw',s.grid);setSw('autoSw',s.autoExport);setSw('gpsSw',s.gps);
+  const s=S();
+  const ls=$('localSel'),fo=ls.querySelector('[value=folder]');fo.disabled=!fsOK;fo.textContent=fsOK?'フォルダに整理':'フォルダに整理（この端末は非対応）';
+  ls.value=s.local;
+  $('rootRow').hidden=s.local!=='folder';
+  $('rootTx').textContent=rootDir?`「${rootDir.name}」の中に 工事名 / 工種 / 測点 / 撮影項目 のフォルダを作ります`:'まだ選んでいません。「Pictures」の中に「工事写真」などのフォルダを作って選ぶのがおすすめです';
+  $('pickRoot').textContent=rootDir?'変える':'選ぶ';
+  $('localHint').textContent=s.local==='folder'?'工事名 / 工種 / 測点 / 撮影項目 に分けて保存':s.local==='download'?'「ダウンロード」フォルダにまとめて保存':'アプリ内だけに保存';
+  document.querySelectorAll('#cloudSeg [data-v]').forEach(x=>x.classList.toggle('on',x.dataset.v===s.cloud));
+  renderCloudBox();
+  setSw('gridSw',s.grid);setSw('gpsSw',s.gps);setSw('stillSw',s.still);
+  $('sizeSel').value=String(s.size);$('dateSel').value=s.dateFmt;
   $('verTx').textContent=VER;
   dbAll().then(a=>{$('storeInfo').textContent=storeLine(a)+'。アプリ内の控えは「撮影した写真」から削除できます。'}).catch(()=>{});
 }
-$('sizeSel').onchange=e=>{state.settings.size=+e.target.value;save()};
-$('dateSel').onchange=e=>{state.settings.dateFmt=e.target.value;changed()};
-$('gridSw').onclick=()=>{state.settings.grid=!state.settings.grid;applyGrid();save();renderSettings()};
-$('autoSw').onclick=()=>{state.settings.autoExport=!state.settings.autoExport;save();renderSettings()};
-$('gpsSw').onclick=()=>{state.settings.gps=!state.settings.gps;save();renderSettings();if(state.settings.gps){geoDenied=false;startGeo()}else{stopGeo();fix=null;updGeo()}};
-function applyGrid(){$('gridOv').hidden=!state.settings.grid}
+async function renderCloudBox(){
+  const s=S(),box=$('cloudBox');
+  if(s.cloud==='off'){box.innerHTML='<p class="note">撮った写真を、スマホと同じフォルダ分けでクラウドにも保存できます。</p>';return}
+  if(document.activeElement&&box.contains(document.activeElement)&&document.activeElement.tagName==='INPUT')return;
+  const isG=s.cloud==='gdrive',ready=cloudReady(),n=await pendingCount();
+  const idKey=isG?'gClient':'msClient';
+  box.innerHTML=`
+    <div class="field"><label for="cloudIdIn">${isG?'GoogleのクライアントID':'Microsoftのアプリ（クライアント）ID'}</label>
+      <input type="text" id="cloudIdIn" autocomplete="off" spellcheck="false" placeholder="${isG?'xxxxxxxx.apps.googleusercontent.com':'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'}">
+      <span class="note" style="margin:0">初回だけ${isG?'Google Cloud':'Microsoft Entra'}での登録が必要です。<a href="${SETUP_URL}" target="_blank" rel="noopener">登録手順を見る</a></span></div>
+    <div class="field"><label for="cloudRootIn">${cloudName()}の保存フォルダ名</label><input type="text" id="cloudRootIn" placeholder="現場黒板"></div>
+    <div class="status ${ready?'ok':s[idKey]?'warn':'ng'}">${ready?`${cloudName()}に接続しています`:s[idKey]?'まだ接続していません':'クライアントIDを入れてください'}</div>
+    <p class="note" style="margin:0">保存先：${isG?'マイドライブ':'OneDrive'} / ${esc(cloudRoot())} / 工事名 / 工種 / 測点 / 撮影項目${n?`<br>未送信：${n}枚`:''}</p>
+    <div class="btns">
+      <button class="pill on" id="cloudConn" ${s[idKey]?'':'disabled'}>${ready?'接続し直す':'接続する'}</button>
+      ${n&&ready?'<button class="pill accent" id="cloudSend">未送信を送る</button>':''}
+      ${ready?'<button class="pill danger" id="cloudOff">接続を解除</button>':''}
+    </div>
+    ${isG?'<p class="note" style="margin:0">Googleは1時間ごとに接続が切れます。上のバーの雲のマークが赤くなったら、タップしてつなぎ直してください。撮った写真は送れるまでアプリ内で待機します。</p>':'<p class="note" style="margin:0">OneDriveは約1日ごとにサインインし直しが必要です。撮った写真は送れるまでアプリ内で待機します。</p>'}`;
+  const ci=$('cloudIdIn');ci.value=s[idKey]||'';
+  ci.onchange=()=>{s[idKey]=ci.value.trim();save();gClient=null;if(isG&&s[idKey])initGoogle();renderCloudBox()};
+  const cr=$('cloudRootIn');cr.value=s.cloudRoot||'';cr.onchange=()=>{s.cloudRoot=safeName(cr.value)||'現場黒板';gFold={};lsSet('gk_gfold',gFold);save();renderCloudBox()};
+  $('cloudConn').onclick=()=>cloudConnect();
+  if($('cloudSend'))$('cloudSend').onclick=()=>{toast('送信を始めました');processQueue()};
+  if($('cloudOff'))$('cloudOff').onclick=cloudDisconnect;
+}
+$('localSel').onchange=e=>{S().local=e.target.value;save();renderSettings();if(S().local==='folder'&&!rootDir)toast('「選ぶ」で親フォルダを選んでください')};
+$('pickRoot').onclick=pickRoot;
+$('cloudSeg').onclick=e=>{
+  const b=e.target.closest('[data-v]');if(!b)return;S().cloud=b.dataset.v;save();needAuth=false;lastCloudErr='';
+  if(S().cloud==='gdrive')initGoogle();
+  renderSettings();updCloud();
+};
+$('sizeSel').onchange=e=>{S().size=+e.target.value;save()};
+$('dateSel').onchange=e=>{S().dateFmt=e.target.value;changed()};
+$('gridSw').onclick=()=>{S().grid=!S().grid;applyGrid();save();renderSettings()};
+$('stillSw').onclick=()=>{S().still=!S().still;save();renderSettings()};
+$('gpsSw').onclick=()=>{S().gps=!S().gps;save();renderSettings();if(S().gps){geoDenied=false;startGeo()}else{stopGeo();fix=null;updGeo()}};
+function applyGrid(){$('gridOv').hidden=!S().grid}
 let deferred=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installRow').hidden=false});
 $('installBtn').onclick=async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;$('installRow').hidden=true};
 
 /* ---------- 通知 ---------- */
 let tt=null;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3200)}
 
 /* ---------- 起動 ---------- */
-save();applyGrid();layout();refreshThumb();startCam();
+(async()=>{
+  save();applyGrid();layout();
+  try{rootDir=(await kvGet('root'))||null}catch(e){rootDir=null}
+  refreshThumb();startCam();
+  await msHandleRedirect();
+  if(S().cloud==='gdrive')initGoogle();
+  processQueue();
+})();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(()=>{if(!drag)renderBoard()},60000);
+setInterval(()=>{if(S().cloud!=='off')processQueue()},120000);
 })();
 </script>
 </body>
