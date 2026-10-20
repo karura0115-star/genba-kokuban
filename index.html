@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f1311">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="現場黒板">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>現場黒板</title>
+<style>
+/* 撮影画面を主役にした暗色のカメラUI。操作部は下（横持ちでは右）に集約 */
+:root{
+  --ink:#0f1311; --panel:#18201b; --panel2:#212b25; --line:#33403a;
+  --fg:#eef1ec; --mute:#97a39c; --chalk:#f0d35c; --danger:#e8694f;
+  --font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--fg);font-family:var(--font);font-size:15px;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+input,select,textarea{-webkit-user-select:text;user-select:text}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+#app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;grid-template-areas:"top" "stage" "ctrl";
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.top{grid-area:top;display:flex;align-items:center;gap:6px;padding:8px 10px;min-height:56px}
+.stage{grid-area:stage;position:relative;min-height:0;min-width:0;display:grid;place-items:center;overflow:hidden}
+.ctrl{grid-area:ctrl;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 22px 18px}
+
+.boardName{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:20px;background:var(--panel2);font-weight:600}
+.boardName span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.boardName small{color:var(--mute);font-weight:400;flex:none}
+.ib{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:21px;color:var(--fg)}
+.ib:active{background:var(--panel2)}
+.ib.on{color:var(--ink);background:var(--chalk)}
+.modeBar{flex:1;min-width:0;font-weight:600;padding-left:6px}
+.modeBar small{display:block;color:var(--mute);font-weight:400;font-size:12px}
+
+.frame{position:relative;background:#000;overflow:hidden;touch-action:none}
+.frame video,.frame img.still{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.grid{position:absolute;inset:0;pointer-events:none;
+  background:
+   linear-gradient(to right,transparent calc(33.333% - .5px),rgba(255,255,255,.35) calc(33.333% - .5px),rgba(255,255,255,.35) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.35) calc(66.666% - .5px),rgba(255,255,255,.35) calc(66.666% + .5px),transparent calc(66.666% + .5px)),
+   linear-gradient(to bottom,transparent calc(33.333% - .5px),rgba(255,255,255,.35) calc(33.333% - .5px),rgba(255,255,255,.35) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.35) calc(66.666% - .5px),rgba(255,255,255,.35) calc(66.666% + .5px),transparent calc(66.666% + .5px))}
+#boardBox{position:absolute;touch-action:none;cursor:move}
+#boardBox canvas{display:block;width:100%;height:auto}
+#handle{position:absolute;right:-14px;bottom:-14px;width:30px;height:30px;border-radius:50%;background:var(--chalk);border:3px solid var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.5);touch-action:none}
+#handle::after{content:"";position:absolute;inset:7px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.flash.go{opacity:.85;transition:none}
+#camMsg{position:absolute;inset:0;display:grid;place-content:center;gap:14px;padding:24px;text-align:center;color:var(--mute);line-height:1.7}
+#camMsg b{color:var(--fg);font-size:17px}
+
+.thumbBtn{justify-self:start;width:58px;height:58px;border-radius:12px;overflow:hidden;background:var(--panel2);border:2px solid var(--line);position:relative;display:grid;place-items:center;color:var(--mute)}
+.thumbBtn img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:-1px;right:-1px;min-width:22px;height:20px;padding:0 6px;border-radius:0 10px 0 10px;background:var(--chalk);color:var(--ink);font-size:12px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.shutter{width:80px;height:80px;border-radius:50%;border:4px solid var(--fg);display:grid;place-items:center}
+.shutter i{display:block;width:62px;height:62px;border-radius:50%;background:var(--fg);transition:transform .08s}
+.shutter:active i{transform:scale(.88)}
+.shutter.photo i{background:var(--chalk);display:grid;place-items:center;color:var(--ink);font-style:normal;font-weight:700;font-size:15px}
+.shutter:disabled{opacity:.4}
+.editBtn{justify-self:end;display:grid;justify-items:center;gap:2px;font-size:12px;color:var(--fg);padding:4px 6px}
+
+@media (orientation:landscape) and (max-height:600px){
+  #app{grid-template-columns:1fr 128px;grid-template-rows:auto 1fr;grid-template-areas:"stage top" "stage ctrl"}
+  .top{flex-wrap:wrap;justify-content:center;padding:8px 6px}
+  .boardName{flex:1 1 100%;height:36px}
+  .modeBar{flex:1 1 100%;text-align:center;padding:0}
+  .ctrl{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr;justify-items:center;padding:8px 6px 12px}
+  .thumbBtn,.editBtn{justify-self:center}
+  .thumbBtn{align-self:start}.editBtn{align-self:end}
+}
+
+/* シート */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-height:76%;overflow:auto;background:var(--panel);border-radius:18px 18px 0 0;
+  padding:6px max(16px,env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+.sheet.tall{max-height:92%}
+@media (orientation:landscape) and (max-height:600px){.sheet{left:auto;width:min(480px,100%);max-height:100%;top:0;border-radius:18px 0 0 18px}}
+.sheetHead{position:sticky;top:-6px;z-index:2;display:flex;align-items:center;gap:8px;padding:12px 0 10px;background:var(--panel)}
+.sheetHead h2{flex:1;margin:0;font-size:18px}
+.done{height:38px;padding:0 18px;border-radius:19px;background:var(--chalk);color:var(--ink);font-weight:700}
+.sec{margin:16px 0 8px;font-size:12px;letter-spacing:.08em;color:var(--mute)}
+.hrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{height:36px;padding:0 14px;border-radius:18px;background:var(--panel2);border:1px solid var(--line);font-size:14px}
+.pill.on{background:var(--fg);color:var(--ink);border-color:var(--fg);font-weight:700}
+.pill.danger{color:var(--danger)}
+.pill:disabled{opacity:.4}
+input[type=text],select{width:100%;height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--fg);font:inherit;font-size:16px}
+select{appearance:auto}
+.rows{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:92px 1fr;gap:6px;padding:10px;border-radius:12px;background:var(--panel2)}
+.row .lab{font-weight:700;padding:0 8px}
+.row .auto{display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 12px;border-radius:10px;border:1px dashed var(--line);color:var(--fg)}
+.row .auto small{color:var(--chalk)}
+.ra{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end}
+.ra button{height:30px;min-width:40px;padding:0 10px;border-radius:15px;border:1px solid var(--line);font-size:13px;color:var(--mute)}
+.ra button.on{color:var(--ink);background:var(--chalk);border-color:var(--chalk)}
+.ra button.del{color:var(--danger)}
+.addRow{width:100%;height:44px;margin-top:10px;border-radius:12px;border:1px dashed var(--line);color:var(--chalk);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--chalk)}
+.rangeRow{display:grid;grid-template-columns:1fr 48px;gap:10px;align-items:center;font-variant-numeric:tabular-nums}
+.setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.setRow > div{min-width:0}
+.setRow small{display:block;color:var(--mute);font-size:12px;margin-top:2px;line-height:1.5}
+.setRow select{width:auto;min-width:150px}
+.sw{position:relative;width:50px;height:30px;flex:none;border-radius:15px;background:var(--line)}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--fg);transition:left .15s}
+.sw.on{background:var(--chalk)}.sw.on::after{left:23px;background:var(--ink)}
+.note{color:var(--mute);font-size:13px;line-height:1.7}
+
+/* 写真一覧 */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}
+.gi{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--panel2);max-width:100%}
+.gi img{width:100%;height:100%;object-fit:cover;display:block}
+.gi .chk{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35)}
+.gi.sel .chk{background:var(--chalk);border-color:var(--chalk)}
+.gi.sel .chk::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.gi.sel img{opacity:.75}
+.galBar{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));margin:12px calc(-1 * max(16px,env(safe-area-inset-left))) calc(-20px - env(safe-area-inset-bottom));padding:10px max(16px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.galBar .cnt{flex:1;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.empty{padding:40px 0;text-align:center;color:var(--mute);line-height:1.8}
+
+#viewer{position:fixed;inset:0;z-index:30;background:#000;display:grid;grid-template-rows:auto 1fr auto;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#viewer .vh{display:flex;align-items:center;gap:8px;padding:8px 12px}
+#viewer .vh div{flex:1;min-width:0;font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#viewer .vimg{min-height:0;display:grid;place-items:center;padding:4px}
+#viewer .vimg img{max-width:100%;max-height:100%;object-fit:contain}
+#viewer .vb{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px 16px 16px}
+
+#toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;max-width:calc(100% - 32px);padding:10px 16px;border-radius:20px;background:rgba(24,32,27,.96);border:1px solid var(--line);font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top" id="topCam">
+    <button class="boardName" id="boardNameBtn" aria-label="黒板を編集"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M3 9h18M3 13.5h18M8.5 4v14"/></svg><span id="boardNameTx">黒板</span><small>▼</small></button>
+    <button class="ib" id="importBtn" aria-label="保存済みの写真に黒板を入れる" title="写真から"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg></button>
+    <button class="ib" id="torchBtn" aria-label="ライト" hidden><svg class="i" viewBox="0 0 24 24"><path d="M8 3h8v4l-2 3v11h-4V10L8 7z"/><path d="M12 13v2"/></svg></button>
+    <button class="ib" id="flipBtn" aria-label="カメラ切り替え"><svg class="i" viewBox="0 0 24 24"><path d="M4 10a8 8 0 0 1 14.5-4.5L20 7M20 14a8 8 0 0 1-14.5 4.5L4 17"/><path d="M20 3v4h-4M4 21v-4h4"/></svg></button>
+    <button class="ib" id="setBtn" aria-label="設定"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h9M19 6h1M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="16" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
+  </div>
+  <div class="top" id="topPhoto" hidden>
+    <div class="modeBar"><span id="photoTitle">写真に黒板を入れる</span><small>黒板を動かして位置を決め、保存を押します</small></div>
+    <button class="pill" id="photoCancel">やめる</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="frame" id="frame">
+      <video id="video" playsinline muted autoplay></video>
+      <img class="still" id="still" alt="" hidden>
+      <div class="grid" id="gridOv"></div>
+      <div id="boardBox"><canvas id="boardCv"></canvas><div id="handle" aria-label="大きさを変える"></div></div>
+      <div class="flash" id="flash"></div>
+    </div>
+    <div id="camMsg" hidden></div>
+  </div>
+
+  <div class="ctrl">
+    <button class="thumbBtn" id="galBtn" aria-label="撮影した写真"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+    <button class="shutter" id="shutter" aria-label="撮影"><i></i></button>
+    <button class="editBtn" id="editBtn"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>黒板を編集</button>
+  </div>
+</div>
+
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<input type="file" id="nativeCam" accept="image/*" capture="environment" hidden>
+
+<!-- 黒板編集 -->
+<div class="backdrop" id="bd" hidden></div>
+<section class="sheet" id="editor" hidden aria-label="黒板の編集">
+  <div class="sheetHead"><h2>黒板の編集</h2><button class="done" data-close>完了</button></div>
+  <div class="rows" id="rowsEl"></div>
+  <button class="addRow" id="addRow">＋ 項目を追加</button>
+
+  <div class="sec">黒板の色</div>
+  <div class="hrow" id="styleChips">
+    <button class="pill" data-style="green">緑（黒板）</button>
+    <button class="pill" data-style="white">白（ホワイトボード）</button>
+    <button class="pill" data-style="black">黒</button>
+  </div>
+  <div class="sec">背景の濃さ</div>
+  <div class="rangeRow"><input type="range" id="opIn" min="30" max="100" step="5"><span id="opTx">100%</span></div>
+  <div class="sec">位置</div>
+  <div class="hrow"><button class="pill" id="posReset">左下に戻す</button><span class="note">画面の黒板を指で動かせます。右下の丸で大きさを変えられます。</span></div>
+
+  <div class="sec">黒板の切り替え（工事・工種ごとに保存できます）</div>
+  <select id="boardSel" aria-label="使う黒板"></select>
+  <div style="height:8px"></div>
+  <input type="text" id="nameIn" placeholder="黒板の名前（例：植栽工 No.12〜）" aria-label="黒板の名前">
+  <div style="height:10px"></div>
+  <div class="hrow">
+    <button class="pill" id="newBoard">新しい黒板</button>
+    <button class="pill" id="dupBoard">この黒板を複製</button>
+    <button class="pill danger" id="delBoard">この黒板を削除</button>
+  </div>
+</section>
+
+<!-- 設定 -->
+<section class="sheet" id="settings" hidden aria-label="設定">
+  <div class="sheetHead"><h2>設定</h2><button class="done" data-close>閉じる</button></div>
+  <div class="setRow"><div>保存する写真の大きさ<small>長辺のピクセル数。工事写真は100万〜300万画素程度が目安です</small></div>
+    <select id="sizeSel"><option value="1280">1280（約120万画素）</option><option value="1600">1600（約190万画素）</option><option value="2048">2048（約310万画素）</option><option value="0">カメラのまま</option></select></div>
+  <div class="setRow"><div>撮影日の書き方</div>
+    <select id="dateSel"><option value="ymd">2026年10月20日</option><option value="dot">2026.10.20</option><option value="wareki">令和8年10月20日</option></select></div>
+  <div class="setRow"><div>グリッド線を表示</div><button class="sw" id="gridSw" role="switch" aria-label="グリッド線"></button></div>
+  <div class="setRow"><div>撮るたびに端末へ保存<small>オフのときはアプリ内に貯めて、一覧からまとめて保存します</small></div><button class="sw" id="autoSw" role="switch" aria-label="撮るたびに保存"></button></div>
+  <div class="setRow"><div>標準カメラで撮って黒板を入れる<small>このアプリのカメラが使えない時や、高画質で撮りたい時に</small></div><button class="pill" id="nativeBtn">起動</button></div>
+  <div class="setRow" id="installRow" hidden><div>ホーム画面に追加</div><button class="pill on" id="installBtn">追加する</button></div>
+  <div class="sec">保存について</div>
+  <p class="note" id="storeInfo"></p>
+  <p class="note">写真はこのスマホの中だけに保存され、外部へは送信されません。ブラウザのデータを消すと写真も消えるため、こまめに端末へ保存してください。<br>このアプリには改ざん検知機能がありません。電子小黒板の使用に改ざん検知（信憑性確認）が求められる工事では、対応ソフトを使ってください。</p>
+  <p class="note">現場黒板 v1.0</p>
+</section>
+
+<!-- 写真一覧 -->
+<section class="sheet tall" id="gallery" hidden aria-label="撮影した写真">
+  <div class="sheetHead"><h2>撮影した写真</h2><button class="pill" id="selAll">すべて選択</button><button class="done" data-close>閉じる</button></div>
+  <div class="gal" id="galEl"></div>
+  <div class="galBar" id="galBar">
+    <span class="cnt" id="selCnt">0枚選択</span>
+    <button class="pill danger" id="selDel" disabled>削除</button>
+    <button class="pill" id="selShare" disabled>共有</button>
+    <button class="pill on" id="selSave" disabled>端末に保存</button>
+  </div>
+</section>
+
+<div id="viewer" hidden>
+  <div class="vh"><div id="vInfo"></div><button class="pill" id="vClose">閉じる</button></div>
+  <div class="vimg"><img id="vImg" alt="撮影した写真"></div>
+  <div class="vb"><button class="pill danger" id="vDel">削除</button><button class="pill" id="vShare">共有</button><button class="pill on" id="vSave">端末に保存</button></div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const LS='genba-kokuban-v1';
+const FONT='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",Meiryo,sans-serif';
+const STYLES={
+  green:{bg:'#24563c',frame:'#8b6a45',line:'rgba(247,245,236,.92)',text:'#f8f6ec'},
+  white:{bg:'#fbfbf6',frame:null,line:'#1d1d1d',text:'#111111'},
+  black:{bg:'#1b1d1c',frame:null,line:'#e6e6e2',text:'#f4f4f0'}
+};
+const U=1000,PAD=14,ROWH=112,LABW=250,FRAME=20;
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+/* ---------- 状態 ---------- */
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const defPos=()=>({p:{x:.03,y:.6,w:.62},l:{x:.03,y:.55,w:.4}});
+function defaultBoard(){
+  return {id:uid(),name:'標準黒板',style:'green',opacity:1,pos:defPos(),rows:[
+    {label:'工事名',value:'〇〇団地樹木整備工事'},
+    {label:'工種',value:'植栽工'},
+    {label:'測点',value:'No.12'},
+    {label:'撮影日',value:'',auto:'date'},
+    {label:'施工者',value:'株式会社東山園'},
+    {label:'備考',value:'高木植栽 完了'}]};
+}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(LS));if(s&&Array.isArray(s.boards)&&s.boards.length){s.settings=Object.assign(defSettings(),s.settings||{});return s}}catch(e){}
+  const b=defaultBoard();return {boards:[b],cur:b.id,settings:defSettings()};
+}
+function defSettings(){return {size:1600,dateFmt:'ymd',grid:true,autoExport:false}}
+let state=load();
+function save(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+const cur=()=>state.boards.find(b=>b.id===state.cur)||state.boards[0];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p2=n=>String(n).padStart(2,'0');
+function dateText(d){
+  const y=d.getFullYear(),m=d.getMonth()+1,dd=d.getDate();
+  if(state.settings.dateFmt==='dot')return `${y}.${p2(m)}.${p2(dd)}`;
+  if(state.settings.dateFmt==='wareki')return `令和${y-2018}年${m}月${dd}日`;
+  return `${y}年${m}月${dd}日`;
+}
+
+/* ---------- 黒板の描画 ---------- */
+const boardRatio=b=>(Math.max(1,b.rows.length)*ROWH+PAD*2+((STYLES[b.style]||STYLES.green).frame?FRAME*2:0))/U;
+function fitText(ctx,text,maxW,maxSize,minSize,rowH){
+  text=String(text||'');
+  for(let sz=maxSize;sz>=minSize;sz-=2){
+    ctx.font=`700 ${sz}px ${FONT}`;
+    if(ctx.measureText(text).width<=maxW)return {size:sz,lines:[text]};
+    if(sz<=rowH*0.4){const ls=wrap(ctx,text,maxW);if(ls.length<=2)return {size:sz,lines:ls}}
+  }
+  ctx.font=`700 ${minSize}px ${FONT}`;
+  const ls=wrap(ctx,text,maxW).slice(0,2);return {size:minSize,lines:ls};
+}
+function wrap(ctx,text,maxW){
+  const out=[];let line='';
+  for(const ch of text){if(ctx.measureText(line+ch).width>maxW&&line){out.push(line);line=ch}else line+=ch}
+  if(line)out.push(line);return out;
+}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawBoard(ctx,x,y,w,b,date){
+  const st=STYLES[b.style]||STYLES.green,s=w/U,F=st.frame?FRAME:0,h=boardRatio(b)*w,n=b.rows.length;
+  ctx.save();
+  ctx.globalAlpha=b.opacity;
+  if(F){ctx.fillStyle=st.frame;rr(ctx,x,y,w,h,6*s);ctx.fill()}
+  ctx.fillStyle=st.bg;ctx.fillRect(x+F*s,y+F*s,w-2*F*s,h-2*F*s);
+  ctx.globalAlpha=1;
+  if(b.opacity<0.6){ctx.shadowColor='rgba(0,0,0,.85)';ctx.shadowBlur=5*s}
+  const tx=x+(F+PAD)*s,ty=y+(F+PAD)*s,tw=(U-2*F-2*PAD)*s,rh=ROWH*s,lw=LABW*s;
+  ctx.strokeStyle=st.line;ctx.lineWidth=Math.max(1,3*s);
+  ctx.strokeRect(tx,ty,tw,rh*n);
+  ctx.beginPath();
+  for(let i=1;i<n;i++){ctx.moveTo(tx,ty+i*rh);ctx.lineTo(tx+tw,ty+i*rh)}
+  ctx.moveTo(tx+lw,ty);ctx.lineTo(tx+lw,ty+rh*n);ctx.stroke();
+  ctx.fillStyle=st.text;ctx.textBaseline='middle';
+  b.rows.forEach((r,i)=>{
+    const cy=ty+i*rh+rh/2;
+    const L=fitText(ctx,r.label,lw-24*s,46*s,20*s,rh);
+    ctx.font=`700 ${L.size}px ${FONT}`;ctx.textAlign='center';
+    drawLines(ctx,L,tx+lw/2,cy);
+    const val=r.auto==='date'?dateText(date):r.value;
+    const V=fitText(ctx,val,tw-lw-40*s,54*s,22*s,rh);
+    ctx.font=`700 ${V.size}px ${FONT}`;ctx.textAlign='left';
+    drawLines(ctx,V,tx+lw+22*s,cy);
+  });
+  ctx.restore();
+}
+function drawLines(ctx,T,x,cy){
+  const lh=T.size*1.15,start=cy-(T.lines.length-1)*lh/2;
+  T.lines.forEach((l,i)=>ctx.fillText(l,x,start+i*lh));
+}
+
+/* ---------- 画面配置 ---------- */
+const stage=$('stage'),frame=$('frame'),video=$('video'),still=$('still'),boardBox=$('boardBox'),boardCv=$('boardCv');
+let mode='camera';
+function srcSize(){
+  if(mode==='photo'&&still.naturalWidth)return [still.naturalWidth,still.naturalHeight];
+  if(video.videoWidth)return [video.videoWidth,video.videoHeight];
+  return stage.clientWidth>stage.clientHeight?[4,3]:[3,4];
+}
+function layout(){
+  const [sw,sh]=srcSize(),a=sw/sh,W=stage.clientWidth,H=stage.clientHeight;
+  if(!W||!H)return;
+  let fw=W,fh=W/a;if(fh>H){fh=H;fw=H*a}
+  frame.style.width=Math.floor(fw)+'px';frame.style.height=Math.floor(fh)+'px';
+  renderBoard();
+}
+const posKey=(w,h)=>w>=h?'l':'p';
+function curPos(){const b=cur();b.pos=b.pos||defPos();return b.pos[posKey(frame.clientWidth,frame.clientHeight)]}
+function clampPos(p,b,fw,fh){
+  const r=boardRatio(b);
+  p.w=Math.min(Math.max(p.w,.18),1);
+  if(r*p.w*fw/fh>1)p.w=fh/(r*fw);
+  const hf=r*p.w*fw/fh;
+  p.x=Math.min(Math.max(p.x,0),1-p.w);p.y=Math.min(Math.max(p.y,0),1-hf);
+}
+function renderBoard(){
+  const b=cur(),fw=frame.clientWidth,fh=frame.clientHeight;
+  $('boardNameTx').textContent=b.name||'黒板';
+  if(!fw||!fh)return;
+  const p=curPos();clampPos(p,b,fw,fh);
+  boardBox.style.left=p.x*100+'%';boardBox.style.top=p.y*100+'%';boardBox.style.width=p.w*100+'%';
+  const dpr=Math.min(3,window.devicePixelRatio||1),pw=Math.round(p.w*fw*dpr);
+  boardCv.width=pw;boardCv.height=Math.round(boardRatio(b)*pw);
+  const ctx=boardCv.getContext('2d');ctx.clearRect(0,0,boardCv.width,boardCv.height);
+  drawBoard(ctx,0,0,boardCv.width,b,mode==='photo'&&photo?photo.date:new Date());
+}
+new ResizeObserver(()=>layout()).observe(stage);
+video.addEventListener('loadedmetadata',layout);
+video.addEventListener('resize',layout);
+
+/* ---------- 黒板のドラッグ・拡大縮小 ---------- */
+let drag=null;
+boardBox.addEventListener('pointerdown',e=>{
+  const p=curPos();
+  drag={id:e.pointerId,sx:e.clientX,sy:e.clientY,ox:p.x,oy:p.y,ow:p.w,resize:e.target.id==='handle',moved:false};
+  boardBox.setPointerCapture(e.pointerId);e.preventDefault();
+});
+boardBox.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;
+  if(Math.hypot(dx,dy)>6)drag.moved=true;
+  if(!drag.moved)return;
+  const p=curPos(),fw=frame.clientWidth,fh=frame.clientHeight;
+  if(drag.resize)p.w=drag.ow+dx/fw;else{p.x=drag.ox+dx/fw;p.y=drag.oy+dy/fh}
+  renderBoard();
+});
+const endDrag=e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const tap=!drag.moved&&!drag.resize;drag=null;save();
+  if(tap&&e.type==='pointerup')openSheet('editor');
+};
+boardBox.addEventListener('pointerup',endDrag);
+boardBox.addEventListener('pointercancel',endDrag);
+
+/* ---------- カメラ ---------- */
+let stream=null,track=null,facing='environment',torch=false;
+const camMsg=$('camMsg');
+function showMsg(html){camMsg.innerHTML=html;camMsg.hidden=false}
+function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;track=null}
+async function startCam(){
+  stopCam();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    showMsg('<b>このブラウザではカメラを直接使えません</b><span>ホーム画面に追加したアプリから開くか、標準カメラで撮って黒板を入れてください。</span><button class="pill on" data-native>標準カメラで撮る</button>');return;
+  }
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:4032},height:{ideal:3024},aspectRatio:{ideal:4/3}}});
+  }catch(e){
+    try{stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:facing}})}
+    catch(e2){
+      showMsg('<b>カメラを使えませんでした</b><span>カメラの使用を許可してから、もう一度お試しください。</span><button class="pill on" data-retry>もう一度試す</button><button class="pill" data-native>標準カメラで撮る</button>');return;
+    }
+  }
+  camMsg.hidden=true;
+  video.srcObject=stream;try{await video.play()}catch(e){}
+  track=stream.getVideoTracks()[0];torch=false;
+  const caps=track.getCapabilities?track.getCapabilities():{};
+  $('torchBtn').hidden=!caps.torch;$('torchBtn').classList.remove('on');
+  layout();wake();
+}
+camMsg.addEventListener('click',e=>{
+  if(e.target.closest('[data-retry]'))startCam();
+  if(e.target.closest('[data-native]'))$('nativeCam').click();
+});
+$('flipBtn').onclick=()=>{facing=facing==='environment'?'user':'environment';startCam()};
+$('torchBtn').onclick=async()=>{
+  if(!track)return;torch=!torch;
+  try{await track.applyConstraints({advanced:[{torch}]});$('torchBtn').classList.toggle('on',torch)}catch(e){torch=false;toast('ライトを点けられませんでした')}
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){stopCam()}
+  else if(mode==='camera'||!stream){startCam()}
+});
+let lock=null;
+async function wake(){try{if('wakeLock' in navigator&&!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>lock=null)}}catch(e){}}
+
+/* ---------- 撮影・合成 ---------- */
+let busy=false;
+const flashEl=$('flash');
+function flash(){flashEl.classList.add('go');requestAnimationFrame(()=>requestAnimationFrame(()=>flashEl.classList.remove('go')))}
+function outSize(w,h){const L=+state.settings.size;const k=L?Math.min(1,L/Math.max(w,h)):1;return [Math.round(w*k),Math.round(h*k)]}
+function compose(src,sw,sh,date){
+  const [w,h]=outSize(sw,sh),c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d');ctx.drawImage(src,0,0,w,h);
+  const b=cur(),p=JSON.parse(JSON.stringify(b.pos[posKey(w,h)]||defPos()[posKey(w,h)]));
+  clampPos(p,b,w,h);
+  drawBoard(ctx,p.x*w,p.y*h,p.w*w,b,date);
+  return c;
+}
+const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
+function fileName(d){
+  const b=cur(),sk=b.rows.find(r=>/測点|箇所|位置/.test(r.label));
+  let tag=(sk&&sk.value)||b.name||'';tag=tag.replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,30);
+  return `${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}${tag?'_'+tag:''}.jpg`;
+}
+async function store(c,date){
+  const blob=await toBlob(c,.92);
+  const tk=Math.min(1,320/Math.max(c.width,c.height)),t=document.createElement('canvas');
+  t.width=Math.round(c.width*tk);t.height=Math.round(c.height*tk);t.getContext('2d').drawImage(c,0,0,t.width,t.height);
+  const thumb=await toBlob(t,.8);
+  const rec={id:uid(),created:Date.now(),shot:date.getTime(),name:fileName(date),board:cur().name,w:c.width,h:c.height,blob,thumb};
+  await dbPut(rec);
+  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+  refreshThumb();
+  return rec;
+}
+async function shoot(){
+  if(busy)return;
+  if(mode==='photo')return savePhoto();
+  if(!video.videoWidth){toast('カメラの準備ができていません');return}
+  busy=true;flash();
+  try{
+    const d=new Date(),c=compose(video,video.videoWidth,video.videoHeight,d);
+    const rec=await store(c,d);
+    if(state.settings.autoExport)await exportRecs([rec],'save');
+  }catch(e){toast('保存できませんでした：'+(e&&e.message||e))}
+  busy=false;
+}
+$('shutter').onclick=shoot;
+
+/* ---------- 保存済み写真に黒板を入れる ---------- */
+let queue=[],photo=null,qTotal=0;
+$('importBtn').onclick=()=>$('fileIn').click();
+$('nativeBtn').onclick=()=>{closeSheets();$('nativeCam').click()};
+function takeFiles(input){
+  const fs=[...input.files].filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|webp)$/i.test(f.name));input.value='';
+  if(!fs.length)return;queue=fs;qTotal=fs.length;nextPhoto();
+}
+$('fileIn').onchange=e=>takeFiles(e.target);
+$('nativeCam').onchange=e=>takeFiles(e.target);
+async function nextPhoto(){
+  if(photo){URL.revokeObjectURL(photo.url);photo=null}
+  const f=queue.shift();
+  if(!f){exitPhoto();return}
+  const url=URL.createObjectURL(f);
+  still.src=url;
+  try{await still.decode()}catch(e){toast('この写真は読み込めませんでした');return nextPhoto()}
+  photo={url,file:f,date:new Date(f.lastModified||Date.now())};
+  mode='photo';stopCam();
+  video.hidden=true;still.hidden=false;camMsg.hidden=true;
+  $('topCam').hidden=true;$('topPhoto').hidden=false;
+  $('photoTitle').textContent=`写真に黒板を入れる（${qTotal-queue.length}/${qTotal}）`;
+  const sh=$('shutter');sh.classList.add('photo');sh.querySelector('i').textContent='保存';sh.setAttribute('aria-label','黒板を入れて保存');
+  layout();
+}
+async function savePhoto(){
+  if(!photo)return;busy=true;flash();
+  try{const c=compose(still,still.naturalWidth,still.naturalHeight,photo.date);const rec=await store(c,photo.date);
+    if(state.settings.autoExport)await exportRecs([rec],'save');}
+  catch(e){toast('保存できませんでした')}
+  busy=false;nextPhoto();
+}
+function exitPhoto(){
+  if(photo){URL.revokeObjectURL(photo.url);photo=null}
+  queue=[];mode='camera';still.hidden=true;still.removeAttribute('src');video.hidden=false;
+  $('topCam').hidden=false;$('topPhoto').hidden=true;
+  const sh=$('shutter');sh.classList.remove('photo');sh.querySelector('i').textContent='';sh.setAttribute('aria-label','撮影');
+  startCam();
+}
+$('photoCancel').onclick=exitPhoto;
+
+/* ---------- IndexedDB ---------- */
+let dbp=null;
+function idb(){
+  if(!dbp)dbp=new Promise((res,rej)=>{const r=indexedDB.open('genba-kokuban',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('photos',{keyPath:'id'});
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+  return dbp;
+}
+async function tx(mode,fn){
+  const db=await idb();
+  return new Promise((res,rej)=>{const t=db.transaction('photos',mode);let out;const r=fn(t.objectStore('photos'));
+    if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)});
+}
+const dbPut=rec=>tx('readwrite',s=>s.put(rec));
+const dbAll=async()=>((await tx('readonly',s=>s.getAll()))||[]).sort((a,b)=>b.created-a.created);
+const dbDel=ids=>tx('readwrite',s=>{ids.forEach(id=>s.delete(id))});
+
+/* ---------- 書き出し ---------- */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function exportRecs(recs,how){
+  if(!recs.length)return;
+  const files=recs.map(r=>new File([r.blob],r.name,{type:'image/jpeg'}));
+  const useShare=how==='share'||(how==='save'&&isIOS);
+  if(useShare&&navigator.canShare&&navigator.canShare({files})){
+    try{await navigator.share({files});return}
+    catch(e){if(e&&e.name==='AbortError')return;if(how==='save'&&isIOS){toast('保存の画面を開けませんでした。写真一覧から保存してください');return}}
+  }else if(how==='share'){toast('この端末では共有を使えないため、ダウンロードします')}
+  for(const f of files){
+    const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000);await sleep(350);
+  }
+  toast(`${files.length}枚を保存しました`);
+}
+
+/* ---------- 写真一覧 ---------- */
+let galRecs=[],sel=new Set(),urls=[];
+async function refreshThumb(){
+  const all=await dbAll().catch(()=>[]);const btn=$('galBtn');
+  if(btn._u)URL.revokeObjectURL(btn._u);
+  if(all.length){btn._u=URL.createObjectURL(all[0].thumb);btn.innerHTML=`<img src="${btn._u}" alt=""><span class="badge">${all.length}</span>`}
+  else{btn._u=null;btn.innerHTML='<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'}
+}
+async function renderGallery(){
+  urls.forEach(u=>URL.revokeObjectURL(u));urls=[];
+  galRecs=await dbAll();const el=$('galEl');
+  sel.forEach(id=>{if(!galRecs.some(r=>r.id===id))sel.delete(id)});
+  if(!galRecs.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">まだ写真がありません。<br>撮影するとここに貯まります。</div>'}
+  else el.innerHTML=galRecs.map(r=>{const u=URL.createObjectURL(r.thumb);urls.push(u);
+    return `<div class="gi${sel.has(r.id)?' sel':''}" data-id="${r.id}"><img src="${u}" alt="${esc(r.name)}"><button class="chk" data-chk aria-label="選択"></button></div>`}).join('');
+  updSel();
+  const bytes=galRecs.reduce((s,r)=>s+(r.blob.size||0),0);
+  $('storeInfo').textContent=`アプリ内の写真：${galRecs.length}枚（約${(bytes/1048576).toFixed(1)}MB）`;
+}
+function updSel(){
+  const n=sel.size;$('selCnt').textContent=`${n}枚選択／全${galRecs.length}枚`;
+  ['selDel','selShare','selSave'].forEach(id=>$(id).disabled=!n);
+  $('selAll').textContent=n&&n===galRecs.length?'選択を解除':'すべて選択';
+}
+$('galEl').addEventListener('click',e=>{
+  const gi=e.target.closest('.gi');if(!gi)return;const id=gi.dataset.id;
+  if(e.target.closest('[data-chk]')||sel.size){sel.has(id)?sel.delete(id):sel.add(id);gi.classList.toggle('sel',sel.has(id));updSel();return}
+  openViewer(galRecs.find(r=>r.id===id));
+});
+$('selAll').onclick=()=>{if(sel.size===galRecs.length)sel.clear();else galRecs.forEach(r=>sel.add(r.id));renderGallery()};
+const selected=()=>galRecs.filter(r=>sel.has(r.id));
+$('selSave').onclick=()=>exportRecs(selected(),'save');
+$('selShare').onclick=()=>exportRecs(selected(),'share');
+$('selDel').onclick=async()=>{const n=sel.size;if(!confirm(`${n}枚の写真を削除します。元に戻せません。`))return;await dbDel([...sel]);sel.clear();await renderGallery();refreshThumb();toast(`${n}枚を削除しました`)};
+
+let vRec=null,vUrl=null;
+function openViewer(r){
+  vRec=r;if(vUrl)URL.revokeObjectURL(vUrl);vUrl=URL.createObjectURL(r.blob);
+  $('vImg').src=vUrl;const d=new Date(r.shot||r.created);
+  $('vInfo').textContent=`${r.name}　${r.w}×${r.h}`;$('viewer').hidden=false;
+}
+function closeViewer(){$('viewer').hidden=true;$('vImg').removeAttribute('src');if(vUrl)URL.revokeObjectURL(vUrl);vUrl=null;vRec=null}
+$('vClose').onclick=closeViewer;
+$('vSave').onclick=()=>vRec&&exportRecs([vRec],'save');
+$('vShare').onclick=()=>vRec&&exportRecs([vRec],'share');
+$('vDel').onclick=async()=>{if(!vRec||!confirm('この写真を削除します。元に戻せません。'))return;await dbDel([vRec.id]);closeViewer();await renderGallery();refreshThumb();toast('削除しました')};
+
+/* ---------- シート ---------- */
+const bd=$('bd');
+function openSheet(id){
+  closeSheets(true);
+  if(id==='editor')renderEditor();
+  if(id==='settings')renderSettings();
+  if(id==='gallery'){sel.clear();renderGallery()}
+  bd.hidden=false;$(id).hidden=false;$(id).scrollTop=0;
+}
+function closeSheets(silent){['editor','settings','gallery'].forEach(id=>$(id).hidden=true);bd.hidden=true;if(!silent){save();renderBoard()}}
+bd.onclick=()=>closeSheets();
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeSheets());
+$('boardNameBtn').onclick=()=>openSheet('editor');
+$('editBtn').onclick=()=>openSheet('editor');
+$('setBtn').onclick=()=>openSheet('settings');
+$('galBtn').onclick=()=>openSheet('gallery');
+
+/* ---------- 黒板の編集 ---------- */
+function changed(){save();renderBoard()}
+function renderEditor(){
+  const b=cur();
+  $('boardSel').innerHTML=state.boards.map(x=>`<option value="${x.id}">${esc(x.name||'名前なし')}</option>`).join('');
+  $('boardSel').value=b.id;$('nameIn').value=b.name;
+  $('delBoard').disabled=state.boards.length<2;
+  const el=$('rowsEl');el.innerHTML='';
+  b.rows.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='row';
+    d.innerHTML=`<input type="text" class="lab" id="lab${i}" value="${esc(r.label)}" aria-label="項目名">`+
+      (r.auto==='date'?`<div class="auto"><span>${esc(dateText(new Date()))}</span><small>自動</small></div>`:
+       `<input type="text" class="val" id="val${i}" value="${esc(r.value)}" aria-label="${esc(r.label)}の内容" enterkeyhint="done">`)+
+      `<div class="ra"><button data-a="up" aria-label="上へ"${i?'':' disabled'}>↑</button><button data-a="down" aria-label="下へ"${i<b.rows.length-1?'':' disabled'}>↓</button><button data-a="date" class="${r.auto==='date'?'on':''}">日付自動</button><button data-a="del" class="del">削除</button></div>`;
+    d.querySelector('.lab').oninput=e=>{r.label=e.target.value;changed()};
+    const v=d.querySelector('.val');if(v){v.oninput=e=>{r.value=e.target.value;changed()};v.onkeydown=e=>{if(e.key==='Enter')e.target.blur()}}
+    d.querySelector('.ra').onclick=e=>{
+      const a=e.target.closest('button')?.dataset.a;if(!a)return;
+      if(a==='up'&&i>0)[b.rows[i-1],b.rows[i]]=[b.rows[i],b.rows[i-1]];
+      if(a==='down'&&i<b.rows.length-1)[b.rows[i+1],b.rows[i]]=[b.rows[i],b.rows[i+1]];
+      if(a==='date'){if(r.auto==='date')delete r.auto;else r.auto='date'}
+      if(a==='del'){if(b.rows.length<2){toast('項目は1つ以上必要です');return}b.rows.splice(i,1)}
+      changed();renderEditor();
+    };
+    el.appendChild(d);
+  });
+  document.querySelectorAll('#styleChips .pill').forEach(p=>p.classList.toggle('on',p.dataset.style===b.style));
+  $('opIn').value=Math.round(b.opacity*100);$('opTx').textContent=Math.round(b.opacity*100)+'%';
+}
+$('addRow').onclick=()=>{const b=cur();if(b.rows.length>=10){toast('項目は10個までです');return}b.rows.push({label:'項目',value:''});changed();renderEditor();
+  const i=b.rows.length-1;setTimeout(()=>{const v=$('val'+i);v&&v.scrollIntoView({block:'center'})},50)};
+$('styleChips').onclick=e=>{const p=e.target.closest('[data-style]');if(!p)return;cur().style=p.dataset.style;changed();renderEditor()};
+$('opIn').oninput=e=>{cur().opacity=e.target.value/100;$('opTx').textContent=e.target.value+'%';changed()};
+$('posReset').onclick=()=>{cur().pos=defPos();changed();toast('黒板を左下に戻しました')};
+$('boardSel').onchange=e=>{state.cur=e.target.value;changed();renderEditor()};
+$('nameIn').oninput=e=>{cur().name=e.target.value;save();renderBoard();const o=$('boardSel').selectedOptions[0];if(o)o.textContent=e.target.value||'名前なし'};
+$('newBoard').onclick=()=>{const b=defaultBoard();b.name='新しい黒板';b.rows.forEach(r=>{if(!r.auto&&r.label!=='施工者')r.value=''});state.boards.push(b);state.cur=b.id;changed();renderEditor();toast('新しい黒板を作りました')};
+$('dupBoard').onclick=()=>{const b=JSON.parse(JSON.stringify(cur()));b.id=uid();b.name=(b.name||'黒板')+'（コピー）';state.boards.push(b);state.cur=b.id;changed();renderEditor();toast('複製しました')};
+$('delBoard').onclick=()=>{if(state.boards.length<2)return;const b=cur();if(!confirm(`黒板「${b.name}」を削除します。`))return;
+  state.boards=state.boards.filter(x=>x.id!==b.id);state.cur=state.boards[0].id;changed();renderEditor();toast('削除しました')};
+
+/* ---------- 設定 ---------- */
+function renderSettings(){
+  const s=state.settings;$('sizeSel').value=String(s.size);$('dateSel').value=s.dateFmt;
+  $('gridSw').classList.toggle('on',s.grid);$('gridSw').setAttribute('aria-checked',s.grid);
+  $('autoSw').classList.toggle('on',s.autoExport);$('autoSw').setAttribute('aria-checked',s.autoExport);
+  dbAll().then(a=>{const bytes=a.reduce((t,r)=>t+(r.blob.size||0),0);$('storeInfo').textContent=`アプリ内の写真：${a.length}枚（約${(bytes/1048576).toFixed(1)}MB）`}).catch(()=>{});
+}
+$('sizeSel').onchange=e=>{state.settings.size=+e.target.value;save()};
+$('dateSel').onchange=e=>{state.settings.dateFmt=e.target.value;changed()};
+$('gridSw').onclick=()=>{state.settings.grid=!state.settings.grid;applyGrid();save();renderSettings()};
+$('autoSw').onclick=()=>{state.settings.autoExport=!state.settings.autoExport;save();renderSettings()};
+function applyGrid(){$('gridOv').hidden=!state.settings.grid}
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('installRow').hidden=false});
+$('installBtn').onclick=async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;$('installRow').hidden=true};
+
+/* ---------- 通知 ---------- */
+let tt=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400)}
+
+/* ---------- 起動 ---------- */
+applyGrid();layout();refreshThumb();startCam();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+setInterval(()=>{if(!drag)renderBoard()},60000);
+})();
+</script>
+</body>
+</html>
